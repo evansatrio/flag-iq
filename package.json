@@ -1,0 +1,23 @@
+{
+  "name": "flag-iq",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Flag IQ — a Who-Wants-to-Be-a-Millionaire-style flag-guessing game covering 195 countries.",
+  "author": "Febe Hadiwidjaja",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build:web": "node ./scripts/build-web.js",
+    "clean:android": "node -e \"require('fs').rmSync('android',{recursive:true,force:true})\"",
+    "cap:add:android": "npm run clean:android && npm run build:web && npx cap add android",
+    "cap:sync": "npm run build:web && npx cap sync android",
+    "cap:open": "npx cap open android",
+    "android": "npm run cap:sync && npm run cap:open"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  }
+}

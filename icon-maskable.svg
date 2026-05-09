@@ -1,0 +1,65 @@
+<!--
+Maskable variant of icon.svg.
+Android adaptive icons crop the icon — only the central circle (80% diameter)
+is guaranteed visible. This file keeps all meaningful content inside that
+safe zone (no wordmark at the bottom).
+-->
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#A8D5F2"/>
+      <stop offset="100%" stop-color="#5B9BD5"/>
+    </linearGradient>
+    <radialGradient id="globe" cx="35%" cy="35%">
+      <stop offset="0%" stop-color="#C9E4F5"/>
+      <stop offset="55%" stop-color="#7FB8DD"/>
+      <stop offset="100%" stop-color="#3A7BB5"/>
+    </radialGradient>
+    <linearGradient id="goldStar" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFE082"/>
+      <stop offset="50%" stop-color="#F5B041"/>
+      <stop offset="100%" stop-color="#D68910"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="6" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Full bleed background — adaptive icon crops to a shape, so we fill the entire canvas -->
+  <rect width="512" height="512" fill="url(#bgSky)"/>
+
+  <!-- Subtle confetti dots -->
+  <circle cx="80"  cy="90"  r="6" fill="#FFFFFF" opacity="0.55"/>
+  <circle cx="430" cy="80"  r="8" fill="#FFFFFF" opacity="0.45"/>
+  <circle cx="60"  cy="430" r="7" fill="#FFFFFF" opacity="0.45"/>
+  <circle cx="450" cy="440" r="6" fill="#FFFFFF" opacity="0.55"/>
+
+  <!-- Globe — centered, slightly larger to anchor the icon -->
+  <g filter="url(#softShadow)" transform="translate(0,12)">
+    <circle cx="256" cy="256" r="138" fill="url(#globe)"/>
+    <path d="M178 208 Q205 196, 232 211 Q258 226, 250 251 Q240 271, 215 271 Q190 266, 178 246 Z" fill="#8FCB8A"/>
+    <path d="M270 196 Q300 186, 325 206 Q345 224, 340 251 Q330 271, 305 266 Q282 256, 270 226 Z" fill="#8FCB8A"/>
+    <path d="M170 296 Q190 306, 205 321 Q210 341, 195 348 Q180 346, 170 331 Z" fill="#8FCB8A"/>
+    <path d="M295 296 Q325 296, 340 316 Q345 341, 320 346 Q300 336, 295 321 Z" fill="#8FCB8A"/>
+    <ellipse cx="256" cy="256" rx="138" ry="44" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.35"/>
+    <ellipse cx="256" cy="256" rx="138" ry="92" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.25"/>
+    <ellipse cx="256" cy="256" rx="50" ry="138" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.3"/>
+    <ellipse cx="210" cy="201" rx="52" ry="20" fill="#FFFFFF" opacity="0.25"/>
+  </g>
+
+  <!-- Gold star above globe (still inside safe zone) -->
+  <g filter="url(#softShadow)">
+    <polygon points="256,82 271,124 316,126 280,152 293,196 256,170 219,196 232,152 196,126 241,124"
+             fill="url(#goldStar)" stroke="#B8860B" stroke-width="3"/>
+  </g>
+
+  <!-- Tiny flag — pulled in toward center so it stays inside the safe zone -->
+  <g filter="url(#softShadow)">
+    <line x1="370" y1="170" x2="370" y2="280" stroke="#6B4423" stroke-width="6" stroke-linecap="round"/>
+    <path d="M370 170 L420 178 L412 196 L420 214 L370 210 Z" fill="#EC7063" stroke="#A93226" stroke-width="2"/>
+    <circle cx="395" cy="192" r="5" fill="#FFFFFF"/>
+  </g>
+</svg>

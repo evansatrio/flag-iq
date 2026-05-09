@@ -1,0 +1,2866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#FFF8E7" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#FFF8E7" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="format-detection" content="telephone=no" />
+<title>Flag IQ – World Millionaire</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="icon" type="image/png" sizes="32x32"   href="icons/icon-32.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<style>
+  /* =========================
+     Light theme color tokens
+     ========================= */
+  :root {
+    --bg-1: #FFF8E7;
+    --bg-2: #E8F4F8;
+    --bg-3: #F3E9FF;
+    --primary: #5B9BD5;
+    --primary-dark: #3A7BB5;
+    --accent: #F5B041;
+    --accent-dark: #D68910;
+    --success: #58D68D;
+    --success-dark: #239B56;
+    --danger: #EC7063;
+    --danger-dark: #A93226;
+    --text-1: #2C3E50;
+    --text-2: #5D6D7E;
+    --text-3: #95A5A6;
+    --card: #FFFFFF;
+    --card-2: #FBFBFB;
+    --border: #E5E8EC;
+    --shadow-sm: 0 2px 6px rgba(44,62,80,0.08);
+    --shadow-md: 0 6px 18px rgba(44,62,80,0.10);
+    --shadow-lg: 0 12px 32px rgba(44,62,80,0.14);
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  html { background: var(--bg-1); }   /* extends behind status bar / curved edges so it blends */
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', system-ui, sans-serif;
+    color: var(--text-1);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, var(--bg-3) 0%, transparent 50%),
+      radial-gradient(900px 500px at 110% 20%, var(--bg-2) 0%, transparent 50%),
+      linear-gradient(180deg, var(--bg-1) 0%, #FFFFFF 100%);
+    min-height: 100vh;
+    min-height: 100dvh;     /* dynamic viewport — survives Android URL bar collapse */
+    overflow-x: hidden;
+    overscroll-behavior: contain;   /* no rubber-band on Android Chrome */
+    -webkit-text-size-adjust: 100%;
+  }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+  /* ====== App container — portrait-first, capped at phone width ====== */
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ====== Header (compact) ====== */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand img { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; }
+  .brand .title { font-weight: 800; font-size: 15px; line-height: 1; }
+  .brand .subtitle { font-size: 10px; color: var(--text-2); letter-spacing: 1px; text-transform: uppercase; }
+
+  .header-pills { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .prize-now {
+    background: linear-gradient(135deg, #FFEEC2, #F5B041);
+    color: #6E4B11;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 13px;
+    box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+  }
+  .level-pill {
+    background: linear-gradient(135deg, #DCEEF9, #5B9BD5);
+    color: #1B3A55;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 11px;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+  }
+  .level-pill:hover { filter: brightness(1.05); }
+
+  /* ====== Main — single column always ====== */
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .stage {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ====== Flag card — tight gaps so it fits on tall portrait phones (e.g. S26 Ultra ~412×880 CSS px) ====== */
+  .flag-card { display: flex; flex-direction: column; gap: 8px; }
+  .flag-frame {
+    width: 100%;
+    aspect-ratio: 3/2;
+    max-height: 38vh;       /* hard cap so the flag never dominates a tall screen */
+    background: var(--bg-2);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 0 1px var(--border);
+    position: relative;
+  }
+  .flag-frame img {
+    width: 100%; height: 100%;
+    /* `contain` shows the WHOLE flag accurately even for non-3:2 flags
+       (Switzerland 1:1, Qatar 11:28, Nepal pennant). The bg-2 tint
+       provides clean letterboxing. */
+    object-fit: contain;
+    transition: opacity .25s ease;
+  }
+  .flag-frame .loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-3); font-size: 13px;
+  }
+
+  .facts {
+    background: linear-gradient(135deg, #FFFDF5, #FFF8E7);
+    border: 1px dashed #F5C77E;
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    color: #6E4B11;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .facts h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-dark);
+    margin-bottom: 4px;
+  }
+  .facts ul { padding-left: 18px; }
+  .facts li { margin-bottom: 2px; }
+
+  .question-prompt {
+    font-size: 13px;
+    color: var(--text-2);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  /* ====== Options — always full width on portrait ====== */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--card-2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-1);
+    transition: transform .12s ease, background .2s ease, border-color .2s ease;
+    width: 100%;
+    /* Min-height keeps tap target ≥ 48dp Material guideline */
+    min-height: 48px;
+  }
+  .option:hover:not(:disabled) {
+    background: #EAF3FB;
+    border-color: var(--primary);
+    transform: translateY(-1px);
+  }
+  .option:active:not(:disabled) { transform: scale(0.98); }
+  .option .letter {
+    width: 28px; height: 28px;
+    flex: 0 0 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-weight: 800;
+    font-size: 12px;
+  }
+  .option.correct { background: #E8F8EE; border-color: var(--success); }
+  .option.correct .letter { background: var(--success-dark); }
+  .option.wrong   { background: #FDECEA; border-color: var(--danger); }
+  .option.wrong .letter { background: var(--danger-dark); }
+  .option.eliminated { opacity: 0.35; pointer-events: none; }
+  .option.hint { box-shadow: 0 0 0 3px rgba(245,176,65,.45); }
+
+  /* ====== Lifelines section (now inside the stage) ====== */
+  .section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-2); font-weight: 700;
+    margin: 4px 0 4px;
+  }
+
+  .lifelines { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .lifeline {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 4px;
+    background: linear-gradient(135deg, #F3E9FF, #DCEEF9);
+    border: 2px solid #C7DAEC;
+    border-radius: var(--radius-md);
+    color: var(--primary-dark);
+    font-size: 10px; font-weight: 700;
+    text-align: center;
+    transition: transform .12s ease, opacity .2s ease;
+    line-height: 1.2;
+    min-height: 56px;   /* keep tap target comfortable */
+  }
+  .lifeline .icon { font-size: 20px; }
+  .lifeline:active:not(:disabled) { transform: scale(0.96); }
+  .lifeline:disabled { opacity: 0.35; cursor: not-allowed; filter: grayscale(0.6); }
+
+  /* ====== Rung styles (used by ladder modal) ====== */
+  .rung {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-2);
+    margin-bottom: 2px;
+  }
+  .rung.safety { color: var(--accent-dark); font-weight: 800; }
+  .rung.current {
+    background: linear-gradient(135deg, #FFEEC2, #F5B041);
+    color: #6E4B11;
+    box-shadow: var(--shadow-sm);
+  }
+  .rung.passed { color: var(--success-dark); }
+  .rung .lvl { opacity: 0.6; }
+
+  .ladder-modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    text-align: left;
+    padding: 4px;
+    background: var(--card-2);
+    border-radius: var(--radius-md);
+    margin-top: 6px;
+  }
+  .ladder-modal-body::-webkit-scrollbar { width: 6px; }
+  .ladder-modal-body::-webkit-scrollbar-thumb { background: #D6DBDF; border-radius: 6px; }
+
+  /* ====== Action row (3 columns: Ladder / Walk Away / Restart) ====== */
+  .actions-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .actions-row .btn {
+    padding: 11px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    min-height: 44px;
+  }
+
+  .btn {
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: transform .12s ease, opacity .2s ease;
+  }
+  .btn-primary   { background: linear-gradient(135deg, #7FB8DD, #3A7BB5); color: white; box-shadow: var(--shadow-sm); }
+  .btn-secondary { background: #F4F6F8; color: var(--text-1); border: 1px solid var(--border); }
+  .btn-walk      { background: linear-gradient(135deg, #FFEEC2, #F5B041); color: #6E4B11; }
+  .btn:hover:not(:disabled)  { transform: translateY(-1px); }
+  .btn:active:not(:disabled) { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ====== Modal ====== */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(44,62,80,0.45);
+    display: none; align-items: center; justify-content: center;
+    z-index: 50; padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    max-width: 460px; width: 100%;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+  }
+  .modal h2 { margin-bottom: 8px; font-size: 22px; }
+  .modal p  { color: var(--text-2); margin-bottom: 16px; line-height: 1.5; }
+  .modal .icon-big { font-size: 56px; margin-bottom: 8px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  /* Hint chip */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    background: #F3E9FF;
+    color: #6C3483;
+    border-radius: 999px;
+    font-weight: 700; font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  /* ====== Start screen ====== */
+  .splash {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px 28px;
+    box-shadow: var(--shadow-md);
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .splash img { width: 120px; height: 120px; }
+  .splash h1 { font-size: 36px; line-height: 1.1; margin: 4px 0 0; }
+  .splash p { color: var(--text-2); max-width: 460px; }
+
+  .splash-subtitle {
+    color: var(--primary-dark);
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .splash-tagline {
+    color: var(--text-2);
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .splash-buttons {
+    display: flex; flex-direction: column; gap: 10px;
+    width: 100%; max-width: 320px;
+    margin-top: 14px;
+  }
+  .splash-buttons .btn { width: 100%; }
+  .btn-large {
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .feature-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 8px 0; }
+  .feature {
+    background: linear-gradient(135deg, #DCEEF9, #F3E9FF);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px 12px;
+    font-size: 12px; font-weight: 700;
+    color: var(--primary-dark);
+  }
+  .hidden { display: none !important; }
+
+  /* Make modals scrollable + a wider variant for About */
+  .modal {
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal.large { max-width: 600px; }
+  .modal h4 {
+    margin: 14px 0 6px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+  }
+  .modal .body-block {
+    text-align: left; font-size: 14px; line-height: 1.6;
+  }
+  .modal .body-block ul, .modal .body-block ol { padding-left: 20px; margin: 4px 0; }
+  .modal .body-block li { margin-bottom: 4px; }
+
+  /* High scores list inside modal */
+  .hs-modal-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .hs-modal-list li {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 10px;
+    font-size: 13px;
+    border-radius: 8px;
+    color: var(--text-1);
+    text-align: left;
+  }
+  .hs-modal-list li:nth-child(odd) { background: rgba(245,176,65,0.10); }
+  .hs-modal-list li.rank-1 { background: linear-gradient(135deg, #FFEEC2, #F5B041); color: #6E4B11; }
+  .hs-modal-list li.rank-2 { background: linear-gradient(135deg, #ECEFF1, #CFD8DC); }
+  .hs-modal-list li.rank-3 { background: linear-gradient(135deg, #FFE0B2, #FFB74D); }
+  .hs-modal-list li .rank { font-weight: 800; }
+  .hs-modal-list li .name { font-weight: 700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hs-modal-list li .name small { font-weight: 600; color: var(--text-3); margin-left: 4px; }
+  .hs-modal-list li .score { font-weight: 800; color: var(--success-dark); white-space:nowrap; }
+  .hs-modal-list li.rank-1 .score { color: #6E4B11; }
+
+  /* tiny shake */
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)}
+  }
+  .shake { animation: shake .35s ease; }
+
+  /* ====== Name input ====== */
+  .name-input-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    width: 100%; max-width: 380px;
+    margin: 6px 0 4px;
+  }
+  .name-input-wrap label {
+    font-size: 13px; color: var(--text-2); font-weight: 700;
+  }
+  .name-input-wrap input {
+    width: 100%; padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 16px; font-family: inherit;
+    text-align: center; font-weight: 600;
+    background: var(--card-2);
+    color: var(--text-1);
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .name-input-wrap input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+  }
+  .name-input-wrap input.invalid {
+    border-color: var(--danger);
+    background: #FDECEA;
+    animation: shake .35s ease;
+  }
+
+  /* ====== High scores panel ====== */
+  .hi-scores {
+    background: linear-gradient(135deg, #FFFDF5, #FFF8E7);
+    border: 1px dashed #F5C77E;
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-top: 8px;
+    width: 100%;
+    max-width: 520px;
+  }
+  .hi-scores h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-dark);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .hi-scores ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .hi-scores li {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 7px 10px;
+    font-size: 13px;
+    border-radius: 8px;
+    color: var(--text-1);
+  }
+  .hi-scores li:nth-child(odd) { background: rgba(245,176,65,0.10); }
+  .hi-scores li.rank-1 { background: linear-gradient(135deg, #FFEEC2, #F5B041); color: #6E4B11; }
+  .hi-scores li.rank-2 { background: linear-gradient(135deg, #ECEFF1, #CFD8DC); }
+  .hi-scores li.rank-3 { background: linear-gradient(135deg, #FFE0B2, #FFB74D); }
+  .hi-scores li .rank { font-weight: 800; }
+  .hi-scores li .name { font-weight: 700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hi-scores li .name small { font-weight: 600; color: var(--text-3); margin-left: 4px; }
+  .hi-scores li .score { font-weight: 800; color: var(--success-dark); white-space:nowrap; }
+  .hi-scores li.rank-1 .score { color: #6E4B11; }
+  .hi-scores li.empty {
+    grid-template-columns: 1fr;
+    text-align: center;
+    color: var(--text-3); font-style: italic; font-weight: 500;
+  }
+  .hi-scores .reset-row { display:flex; justify-content:center; margin-top: 8px; }
+  .hi-scores .reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .hi-scores .reset-btn:hover { background: var(--card-2); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ====== Header (compact, portrait-friendly) ====== -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="icon.svg" alt="Flag IQ icon"/>
+      <div>
+        <div class="title">Flag IQ</div>
+        <div class="subtitle">World Millionaire</div>
+      </div>
+    </div>
+    <div class="header-pills">
+      <button id="levelPill" class="level-pill hidden" type="button" title="Buka tangga hadiah">Level 1</button>
+      <span id="prizeNow" class="prize-now hidden">Rp 0</span>
+    </div>
+  </header>
+
+  <!-- ====== Splash / Main menu ====== -->
+  <section id="splash" class="splash">
+    <img src="icon.svg" alt="Flag IQ"/>
+    <h1>Flag IQ</h1>
+    <div class="splash-subtitle">World Millionaire</div>
+    <p class="splash-tagline">Tebak <b id="splashCount">…</b> bendera dari seluruh dunia 🌍</p>
+
+    <div class="splash-buttons">
+      <button id="startBtn"   class="btn btn-primary btn-large">▶ Mulai Bermain</button>
+      <button id="scoresBtn"  class="btn btn-secondary">🏆 High Scores</button>
+      <button id="aboutBtn"   class="btn btn-secondary">ℹ️ About</button>
+    </div>
+  </section>
+
+  <!-- ====== Name entry — shown after Mulai Bermain is clicked ====== -->
+  <section id="nameEntry" class="splash hidden">
+    <img src="icon.svg" alt="Flag IQ"/>
+    <h1>Siapa Namamu?</h1>
+    <p class="splash-tagline">Skor kamu akan tercatat di leaderboard 🏆</p>
+
+    <div class="name-input-wrap">
+      <input id="playerNameInput" type="text" placeholder="Contoh: Febe" maxlength="20" autocomplete="off" />
+    </div>
+
+    <div class="splash-buttons">
+      <button id="confirmNameBtn" class="btn btn-primary btn-large">▶ Mulai</button>
+      <button id="backToMenuBtn"  class="btn btn-secondary">← Kembali</button>
+    </div>
+  </section>
+
+  <!-- ====== Main game area (single column, portrait-first) ====== -->
+  <section id="game" class="main hidden">
+    <div class="stage">
+      <div class="flag-card">
+        <div class="flag-frame">
+          <img id="flagImg" alt="Flag" />
+          <div id="flagLoading" class="loading">Loading flag…</div>
+        </div>
+
+        <div class="facts">
+          <h4>Fun Facts</h4>
+          <ul id="factsList"></ul>
+        </div>
+
+        <div id="extraClue"  class="chip hidden">💡 Extra clue: <span id="extraClueText"></span></div>
+        <div id="parentHint" class="chip hidden" style="background:#FFE9D6; color:#A93226;">👨‍👩‍👧 <span id="parentHintText"></span></div>
+
+        <div class="question-prompt">🌐 Negara apa ini?</div>
+        <div id="options" class="options"></div>
+
+        <div class="section-label">Bantuan</div>
+        <div class="lifelines">
+          <button id="ll5050"   class="lifeline" type="button" title="50:50 — hapus 2 jawaban salah">
+            <div class="icon">5️⃣0️⃣</div><div>50 : 50</div>
+          </button>
+          <button id="llClue"   class="lifeline" type="button" title="Beri petunjuk tambahan">
+            <div class="icon">💡</div><div>Petunjuk</div>
+          </button>
+          <button id="llParent" class="lifeline" type="button" title="Tanya Mama / Papa">
+            <div class="icon">👨‍👩‍👧</div><div>Mama/Papa</div>
+          </button>
+        </div>
+
+        <div class="actions-row">
+          <button id="ladderBtn" class="btn btn-secondary" type="button">📊 Hadiah</button>
+          <button id="walkBtn"   class="btn btn-walk"      type="button">💼 Walk Away</button>
+          <button id="quitBtn"   class="btn btn-secondary" type="button">⟲ Restart</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ====== Modal ====== -->
+<div id="modalBg" class="modal-bg">
+  <div class="modal">
+    <div id="modalIcon" class="icon-big">🎉</div>
+    <h2 id="modalTitle">Title</h2>
+    <p id="modalBody">Body</p>
+    <div class="modal-actions">
+      <button id="modalPrimary" class="btn btn-primary">OK</button>
+      <button id="modalSecondary" class="btn btn-secondary hidden">Restart</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   COUNTRY DATASET
+   195 countries: 193 UN member states + Vatican City + Palestine
+   (the two UN observer states with widely-recognized flags).
+   Each entry has 3+ verifiable fun facts and 2 extra clues.
+   Flag images served from flagcdn.com using ISO 3166-1 codes.
+   ============================================================ */
+const COUNTRIES = [
+  /* ============================================================
+     TIER 1 — Iconic / globally recognizable (25 countries)
+     ============================================================ */
+  { code:'id', name:'Indonesia', region:'Asia',
+    facts:[
+      'Largest archipelago in the world with over 17,000 islands',
+      'Home to the Komodo dragon, the world\'s largest lizard',
+      'Has the world\'s third-largest tropical rainforest, after the Amazon and Congo'
+    ],
+    clues:['Capital is Jakarta; a new capital, Nusantara, is being built in Borneo','Famous for Bali, Borobudur Temple, and gamelan music'] },
+
+  { code:'us', name:'United States', region:'Americas',
+    facts:[
+      'Made up of 50 states across North America',
+      'Home to the Statue of Liberty, a gift from France',
+      'Has 63 designated national parks, including Yellowstone, the world\'s first'
+    ],
+    clues:['Capital is Washington, D.C.','Hollywood, the Grand Canyon, and Times Square are all here'] },
+
+  { code:'jp', name:'Japan', region:'Asia',
+    facts:[
+      'Known as the Land of the Rising Sun',
+      'An archipelago of more than 14,000 islands',
+      'Home to Mount Fuji, an active volcano and the country\'s highest peak'
+    ],
+    clues:['Capital is Tokyo, the world\'s largest metropolitan area','Famous for sushi, anime, and the Shinkansen bullet train'] },
+
+  { code:'fr', name:'France', region:'Europe',
+    facts:[
+      'Home of the Eiffel Tower, built for the 1889 World\'s Fair',
+      'One of the most-visited countries in the world',
+      'Hosts the Tour de France, the most famous cycling race in the world'
+    ],
+    clues:['Capital is Paris, on the Seine River','The Louvre is the world\'s most-visited museum'] },
+
+  { code:'gb', name:'United Kingdom', region:'Europe',
+    facts:[
+      'Made up of England, Scotland, Wales, and Northern Ireland',
+      'Home of Big Ben, Stonehenge, and Buckingham Palace',
+      'Birthplace of William Shakespeare, Isaac Newton, and The Beatles'
+    ],
+    clues:['Capital is London, on the River Thames','The Royal Family resides here'] },
+
+  { code:'de', name:'Germany', region:'Europe',
+    facts:[
+      'Largest economy in Europe',
+      'Famous for Oktoberfest, held every year in Munich',
+      'Home of the Brandenburg Gate and remains of the Berlin Wall'
+    ],
+    clues:['Capital is Berlin','Birthplace of BMW, Mercedes-Benz, and Volkswagen'] },
+
+  { code:'it', name:'Italy', region:'Europe',
+    facts:[
+      'Shaped like a boot kicking the island of Sicily',
+      'Home to the Colosseum and entirely surrounds Vatican City',
+      'Has 60 UNESCO World Heritage Sites — among the most of any country'
+    ],
+    clues:['Capital is Rome, founded in 753 BCE according to legend','Birthplace of pizza, pasta, and the Renaissance'] },
+
+  { code:'es', name:'Spain', region:'Europe',
+    facts:[
+      'Famous for flamenco music and bullfighting',
+      'Hosts La Tomatina, the world\'s biggest food fight',
+      'Home of Antoni Gaudí\'s Sagrada Família, still under construction'
+    ],
+    clues:['Capital is Madrid, in the country\'s geographical center','Has 17 autonomous communities including Catalonia and Andalusia'] },
+
+  { code:'cn', name:'China', region:'Asia',
+    facts:[
+      'Home to the Great Wall, stretching over 21,000 km',
+      'One of the most populous countries on Earth',
+      'Invented gunpowder, paper, the compass, and printing'
+    ],
+    clues:['Capital is Beijing; Shanghai is the largest city','Famous for the Forbidden City and the Terracotta Army'] },
+
+  { code:'in', name:'India', region:'Asia',
+    facts:[
+      'Home to the Taj Mahal, a marble mausoleum in Agra',
+      'Birthplace of yoga, chess, and the number zero',
+      'Has 22 officially recognized scheduled languages'
+    ],
+    clues:['Capital is New Delhi','World\'s largest democracy by population'] },
+
+  { code:'br', name:'Brazil', region:'Americas',
+    facts:[
+      'Largest country in South America',
+      'Holds about 60% of the Amazon rainforest, the world\'s largest',
+      'Hosts the Rio Carnival each year, the biggest carnival in the world'
+    ],
+    clues:['Capital is Brasília; Rio de Janeiro and São Paulo are larger','Famous for the Christ the Redeemer statue and samba'] },
+
+  { code:'ca', name:'Canada', region:'Americas',
+    facts:[
+      'Second largest country in the world by total area',
+      'Has the longest coastline of any country',
+      'Produces about 75% of the world\'s maple syrup'
+    ],
+    clues:['Capital is Ottawa; largest city is Toronto','Home to Niagara Falls and Banff National Park'] },
+
+  { code:'au', name:'Australia', region:'Oceania',
+    facts:[
+      'Both a country and a continent',
+      'Home to kangaroos, koalas, and the Great Barrier Reef',
+      'About 90% of its population lives within 50 km of the coast'
+    ],
+    clues:['Capital is Canberra; Sydney is the largest city','The Sydney Opera House is iconic'] },
+
+  { code:'mx', name:'Mexico', region:'Americas',
+    facts:[
+      'Home to the ancient Aztec and Maya civilizations',
+      'Famous for tacos, mariachi, and Día de los Muertos',
+      'Birthplace of chocolate, chili peppers, and the Caesar salad'
+    ],
+    clues:['Capital is Mexico City, built on a former lake','Chichén Itzá pyramid is here'] },
+
+  { code:'ru', name:'Russia', region:'Europe/Asia',
+    facts:[
+      'Largest country in the world by area',
+      'Spans 11 time zones from Kaliningrad to Kamchatka',
+      'Home to Lake Baikal, the world\'s deepest and oldest freshwater lake'
+    ],
+    clues:['Capital is Moscow','Famous for Red Square, the Kremlin, and the Trans-Siberian Railway'] },
+
+  { code:'kr', name:'South Korea', region:'Asia',
+    facts:[
+      'Home of K-pop, K-dramas, and the global Korean Wave',
+      'Famous for kimchi and Korean BBQ',
+      'One of the most wired countries in the world, with the fastest average internet'
+    ],
+    clues:['Capital is Seoul','Birthplace of Samsung, LG, and Hyundai'] },
+
+  { code:'eg', name:'Egypt', region:'Africa',
+    facts:[
+      'Home to the Great Pyramids of Giza, the only surviving ancient wonder',
+      'The Nile, world\'s longest river, flows through it',
+      'One of the world\'s oldest civilizations, with over 5,000 years of recorded history'
+    ],
+    clues:['Capital is Cairo','Famous for hieroglyphs, pharaohs, and King Tutankhamun'] },
+
+  { code:'ar', name:'Argentina', region:'Americas',
+    facts:[
+      'Birthplace of the tango dance and music',
+      'Has the highest peak in the Americas, Aconcagua at 6,961 m',
+      'Home to most of Patagonia and large parts of the Andes'
+    ],
+    clues:['Capital is Buenos Aires','Football legends Maradona and Messi are from here'] },
+
+  { code:'za', name:'South Africa', region:'Africa',
+    facts:[
+      'Has three capital cities: Pretoria, Cape Town, and Bloemfontein',
+      'Home of Nelson Mandela, the country\'s first Black president',
+      'Has 11 officially recognized languages'
+    ],
+    clues:['Famous for safaris, Table Mountain, and wines','First country to voluntarily give up nuclear weapons'] },
+
+  { code:'nl', name:'Netherlands', region:'Europe',
+    facts:[
+      'Famous for tulips, windmills, and bicycles',
+      'About a third of the country lies below sea level',
+      'Has more bicycles than people'
+    ],
+    clues:['Capital is Amsterdam, with its iconic canal ring','Home of Vincent van Gogh and the Anne Frank House'] },
+
+  { code:'sa', name:'Saudi Arabia', region:'Asia',
+    facts:[
+      'Home to Mecca and Medina, the two holiest cities of Islam',
+      'One of the world\'s largest oil exporters',
+      'Contains the Empty Quarter (Rub\' al Khali), the world\'s largest sand desert'
+    ],
+    clues:['Capital is Riyadh','The country is named after the ruling Al Saud family'] },
+
+  { code:'tr', name:'Turkey', region:'Europe/Asia',
+    facts:[
+      'Spans both Europe and Asia, divided by the Bosphorus Strait',
+      'Home to Hagia Sophia and the Grand Bazaar',
+      'Cappadocia is famous for fairy chimneys and hot-air balloons'
+    ],
+    clues:['Capital is Ankara; Istanbul is the largest city','Famous for Turkish baths, baklava, and döner kebab'] },
+
+  { code:'gr', name:'Greece', region:'Europe',
+    facts:[
+      'Birthplace of democracy and Western philosophy',
+      'Home of the original Olympic Games, first held in 776 BCE',
+      'Has more than 6,000 islands and islets'
+    ],
+    clues:['Capital is Athens','The Acropolis and the Parthenon are here'] },
+
+  { code:'th', name:'Thailand', region:'Asia',
+    facts:[
+      'Known as the Land of Smiles',
+      'The only Southeast Asian country never colonized by a European power',
+      'Famous for elephants, Thai cuisine, and ornate Buddhist temples'
+    ],
+    clues:['Capital is Bangkok','A constitutional monarchy with a beloved royal family'] },
+
+  { code:'sg', name:'Singapore', region:'Asia',
+    facts:[
+      'A city-state and one of only three modern city-states in the world',
+      'The Merlion (half lion, half fish) is its national symbol',
+      'Has four official languages: English, Malay, Mandarin, and Tamil'
+    ],
+    clues:['One of the cleanest countries in the world','Home to Marina Bay Sands and Gardens by the Bay'] },
+
+  /* ============================================================
+     TIER 2 — Well-known (50 countries)
+     ============================================================ */
+  { code:'vn', name:'Vietnam', region:'Asia',
+    facts:[
+      'S-shaped country along the eastern edge of Southeast Asia',
+      'Famous for pho, banh mi, and áo dài (traditional dress)',
+      'Home to Ha Long Bay, with its thousands of limestone karsts'
+    ],
+    clues:['Capital is Hanoi; largest city is Ho Chi Minh City','One of the world\'s largest exporters of coffee and rice'] },
+
+  { code:'ph', name:'Philippines', region:'Asia',
+    facts:[
+      'Made up of more than 7,640 islands',
+      'Named after King Philip II of Spain',
+      'Only majority-Christian country in Southeast Asia'
+    ],
+    clues:['Capital is Manila','Famous for Boracay, Palawan, and the Chocolate Hills'] },
+
+  { code:'my', name:'Malaysia', region:'Asia',
+    facts:[
+      'Home to the Petronas Twin Towers, the world\'s tallest twin towers',
+      'Multicultural mix of Malay, Chinese, and Indian heritage',
+      'Has two regions separated by the South China Sea'
+    ],
+    clues:['Capital is Kuala Lumpur','Has a constitutional monarchy with a rotating king'] },
+
+  { code:'nz', name:'New Zealand', region:'Oceania',
+    facts:[
+      'Land of the Kiwi bird, also a nickname for its people',
+      'Filming location for The Lord of the Rings and The Hobbit',
+      'First country in the world to give women the right to vote (1893)'
+    ],
+    clues:['Capital is Wellington; largest city is Auckland','Famous for the Maori Haka dance'] },
+
+  { code:'ae', name:'United Arab Emirates', region:'Asia',
+    facts:[
+      'Home to the Burj Khalifa, the world\'s tallest building',
+      'A federation of seven emirates',
+      'Less than a century ago, was largely a pearl-diving and fishing economy'
+    ],
+    clues:['Capital is Abu Dhabi; Dubai is the most famous emirate','Has the world\'s largest indoor ski slope'] },
+
+  { code:'il', name:'Israel', region:'Asia',
+    facts:[
+      'Home to Jerusalem, holy to Judaism, Christianity, and Islam',
+      'The Dead Sea, on its border, is the lowest point on Earth\'s land surface',
+      'Hebrew, an ancient language, was revived as a daily spoken tongue here'
+    ],
+    clues:['Tel Aviv is the tech and beach city','Famous for kibbutzim and high-tech innovation'] },
+
+  { code:'ke', name:'Kenya', region:'Africa',
+    facts:[
+      'Famous for safaris and the Maasai Mara reserve',
+      'A long-distance running powerhouse, especially in marathons',
+      'The Equator runs through the country'
+    ],
+    clues:['Capital is Nairobi','Mount Kenya is the second-highest peak in Africa'] },
+
+  { code:'ng', name:'Nigeria', region:'Africa',
+    facts:[
+      'Most populous country in Africa',
+      'Home of Nollywood, the world\'s second-largest film industry by output',
+      'Has more than 500 distinct languages'
+    ],
+    clues:['Capital is Abuja','Largest city is Lagos, a major economic hub'] },
+
+  { code:'cl', name:'Chile', region:'Americas',
+    facts:[
+      'One of the longest countries in the world from north to south',
+      'Home to the Atacama, the driest non-polar desert',
+      'Easter Island, with its giant moai statues, belongs to Chile'
+    ],
+    clues:['Capital is Santiago','Famous for Patagonia and one of the world\'s top wine regions'] },
+
+  { code:'pe', name:'Peru', region:'Americas',
+    facts:[
+      'Home to Machu Picchu, an Incan citadel high in the Andes',
+      'One of the original birthplaces of the potato',
+      'Has more than 3,000 varieties of native potatoes'
+    ],
+    clues:['Capital is Lima','Spanish and Quechua are official languages'] },
+
+  { code:'co', name:'Colombia', region:'Americas',
+    facts:[
+      'One of the world\'s largest coffee producers',
+      'Only South American country with both Atlantic (Caribbean) and Pacific coasts',
+      'One of the most biodiverse countries on Earth'
+    ],
+    clues:['Capital is Bogotá','Home of Nobel laureate Gabriel García Márquez'] },
+
+  { code:'se', name:'Sweden', region:'Europe',
+    facts:[
+      'Home of IKEA, ABBA, Volvo, and Spotify',
+      'Awards the Nobel Prizes (except Peace, awarded in Norway)',
+      'Has more than 220,000 islands, more than any other country'
+    ],
+    clues:['Capital is Stockholm','Famous for fika culture and Midsummer celebrations'] },
+
+  { code:'no', name:'Norway', region:'Europe',
+    facts:[
+      'Famous for fjords carved by ancient glaciers',
+      'Heartland of the Vikings',
+      'Home to Lærdal, the world\'s longest road tunnel at 24.5 km'
+    ],
+    clues:['Capital is Oslo','Awards the Nobel Peace Prize each year'] },
+
+  { code:'ch', name:'Switzerland', region:'Europe',
+    facts:[
+      'Famous for chocolate, watches, and many varieties of cheese',
+      'Home to a large portion of the Alps',
+      'Has been officially neutral in war since 1815'
+    ],
+    clues:['Capital is Bern','Has four official languages: German, French, Italian, and Romansh'] },
+
+  { code:'fi', name:'Finland', region:'Europe',
+    facts:[
+      'Country with the most saunas per capita — over 3 million for ~5.5 million people',
+      'Home of Santa Claus in Lapland, by tradition',
+      'Repeatedly ranked the happiest country in the World Happiness Report'
+    ],
+    clues:['Capital is Helsinki','Birthplace of Nokia, Linux, and Angry Birds'] },
+
+  { code:'dk', name:'Denmark', region:'Europe',
+    facts:[
+      'Home of LEGO, founded in Billund in 1932',
+      'Birthplace of Hans Christian Andersen, author of The Little Mermaid',
+      'Has one of the oldest monarchies in Europe, dating to the 10th century'
+    ],
+    clues:['Capital is Copenhagen','Famous for hygge culture and bicycle infrastructure'] },
+
+  { code:'at', name:'Austria', region:'Europe',
+    facts:[
+      'Birthplace of Wolfgang Amadeus Mozart',
+      'Setting of "The Sound of Music"',
+      'Home of the Vienna State Opera and the Vienna Philharmonic'
+    ],
+    clues:['Capital is Vienna','Famous for Sachertorte cake, Alpine skiing, and Lipizzaner horses'] },
+
+  { code:'be', name:'Belgium', region:'Europe',
+    facts:[
+      'Famous for chocolate, waffles, and over 1,000 varieties of beer',
+      'Home of the headquarters of the EU and NATO',
+      'Has three official languages: Dutch, French, and German'
+    ],
+    clues:['Capital is Brussels','The Atomium and the Manneken Pis statue are here'] },
+
+  { code:'pl', name:'Poland', region:'Europe',
+    facts:[
+      'Birthplace of Marie Curie and Frédéric Chopin',
+      'Has Malbork, the largest castle in the world by area',
+      'Wieliczka Salt Mine has chapels carved entirely from salt'
+    ],
+    clues:['Capital is Warsaw','Home to the Auschwitz–Birkenau memorial'] },
+
+  { code:'pt', name:'Portugal', region:'Europe',
+    facts:[
+      'Westernmost country in mainland Europe',
+      'Famous for port wine, fado music, and pastéis de nata',
+      'A major maritime power during the 15th–16th-century Age of Discovery'
+    ],
+    clues:['Capital is Lisbon','Cristiano Ronaldo and explorer Vasco da Gama are from here'] },
+
+  { code:'ie', name:'Ireland', region:'Europe',
+    facts:[
+      'Known as the Emerald Isle for its lush green landscape',
+      'Home of Saint Patrick\'s Day, celebrated worldwide',
+      'Has produced four Nobel Prize winners in Literature'
+    ],
+    clues:['Capital is Dublin','Famous for Guinness beer, Irish dance, and U2'] },
+
+  { code:'cz', name:'Czech Republic', region:'Europe',
+    facts:[
+      'One of the highest beer consumption rates per capita in the world',
+      'Famous for hundreds of fairy-tale castles and chateaus',
+      'The word "robot" was coined here, by writer Karel Čapek'
+    ],
+    clues:['Capital is Prague','Also officially called Czechia'] },
+
+  { code:'hu', name:'Hungary', region:'Europe',
+    facts:[
+      'Famous for paprika, goulash, and thermal baths',
+      'Home to the largest synagogue in Europe',
+      'Budapest is split by the Danube into Buda and Pest'
+    ],
+    clues:['Capital is Budapest','Hungarian (Magyar) is unrelated to most other European languages'] },
+
+  { code:'is', name:'Iceland', region:'Europe',
+    facts:[
+      'Land of Fire and Ice, with both volcanoes and glaciers',
+      'Has one of the world\'s oldest parliaments, the Althing, founded in 930 AD',
+      'No mosquitoes live here, which is rare for a populated country'
+    ],
+    clues:['Capital is Reykjavík','Famous for geysers, hot springs, and the Northern Lights'] },
+
+  { code:'ua', name:'Ukraine', region:'Europe',
+    facts:[
+      'Largest country located entirely within Europe',
+      'Famous for borscht and pysanky (decorated Easter eggs)',
+      'Has fertile black soil that earned it the nickname "breadbasket of Europe"'
+    ],
+    clues:['Capital is Kyiv','Site of the 1986 Chernobyl nuclear disaster'] },
+
+  { code:'ro', name:'Romania', region:'Europe',
+    facts:[
+      'Home to Transylvania and Bran "Dracula" Castle',
+      'Romanian is a Romance language, related to Italian and Spanish',
+      'Has Europe\'s largest population of brown bears in the wild'
+    ],
+    clues:['Capital is Bucharest','Largest country in Southeastern Europe'] },
+
+  { code:'hr', name:'Croatia', region:'Europe',
+    facts:[
+      'Famous for its long Adriatic coastline and clear blue waters',
+      'Filming location for Game of Thrones (Dubrovnik, Split)',
+      'Has more than 1,000 islands, of which about 50 are inhabited'
+    ],
+    clues:['Capital is Zagreb','Inventor Nikola Tesla was born in what is now Croatia'] },
+
+  { code:'cu', name:'Cuba', region:'Americas',
+    facts:[
+      'Famous for cigars, salsa music, and 1950s American cars',
+      'Largest island in the Caribbean',
+      'Birthplace of mojitos, daiquiris, and Cuban son music'
+    ],
+    clues:['Capital is Havana','Has one of the world\'s highest literacy rates'] },
+
+  { code:'cr', name:'Costa Rica', region:'Americas',
+    facts:[
+      'Has had no standing army since 1948',
+      'Home to about 5% of the world\'s biodiversity in just 0.03% of its surface',
+      'About a quarter of its territory is protected national parks or reserves'
+    ],
+    clues:['Capital is San José','National motto: "Pura Vida" — "Pure Life"'] },
+
+  { code:'ma', name:'Morocco', region:'Africa',
+    facts:[
+      'Famous for the medinas and souks of Marrakech and Fès',
+      'Has coasts on both the Atlantic Ocean and the Mediterranean Sea',
+      'Casablanca\'s Hassan II Mosque has one of the world\'s tallest minarets'
+    ],
+    clues:['Capital is Rabat','Home to part of the Sahara and the Atlas Mountains'] },
+
+  { code:'ir', name:'Iran', region:'Asia',
+    facts:[
+      'Heir to the ancient Persian Empire',
+      'Home to Persepolis, the ceremonial capital of ancient Persia',
+      'World\'s largest producer of saffron and pistachios'
+    ],
+    clues:['Capital is Tehran','Persian (Farsi) is the official language'] },
+
+  { code:'iq', name:'Iraq', region:'Asia',
+    facts:[
+      'Site of ancient Mesopotamia, the cradle of civilization',
+      'The Tigris and Euphrates rivers flow through it',
+      'Home to the ancient cities of Babylon and Ur'
+    ],
+    clues:['Capital is Baghdad','Arabic and Kurdish are official languages'] },
+
+  { code:'pk', name:'Pakistan', region:'Asia',
+    facts:[
+      'Home to K2, the world\'s second-highest mountain',
+      'Has the ancient Indus Valley sites of Mohenjo-daro and Harappa',
+      'Has four provinces and a wide range of climates'
+    ],
+    clues:['Capital is Islamabad; Karachi is the largest city','Urdu is the national language; English is widely used in business'] },
+
+  { code:'bd', name:'Bangladesh', region:'Asia',
+    facts:[
+      'One of the most densely populated countries in the world',
+      'Home of the Sundarbans, the largest mangrove forest on Earth',
+      'Bengal tigers roam the Sundarbans here'
+    ],
+    clues:['Capital is Dhaka','Bengali is the official language'] },
+
+  { code:'lk', name:'Sri Lanka', region:'Asia',
+    facts:[
+      'Island nation off the southern tip of India',
+      'One of the largest tea exporters in the world',
+      'Home to the ancient Sigiriya rock fortress, a UNESCO site'
+    ],
+    clues:['Sri Jayawardenepura Kotte is the capital; Colombo is the commercial center','Famous for Ceylon cinnamon and elephants'] },
+
+  { code:'np', name:'Nepal', region:'Asia',
+    facts:[
+      'Home to Mount Everest, the world\'s tallest mountain',
+      'The only country with a non-rectangular national flag',
+      'Birthplace of Siddhartha Gautama (the Buddha) in Lumbini'
+    ],
+    clues:['Capital is Kathmandu','Eight of the world\'s 14 highest peaks are here'] },
+
+  { code:'mn', name:'Mongolia', region:'Asia',
+    facts:[
+      'Birthplace of Genghis Khan, founder of the Mongol Empire',
+      'Has vast steppes and the Gobi Desert',
+      'One of the world\'s least densely populated countries'
+    ],
+    clues:['Capital is Ulaanbaatar','Famous for traditional gers (yurts) and horse culture'] },
+
+  { code:'mm', name:'Myanmar', region:'Asia',
+    facts:[
+      'Famous for the temples of Bagan, with thousands of pagodas',
+      'Was formerly known as Burma',
+      'Yangon\'s Shwedagon Pagoda is plated with thousands of gold leaves'
+    ],
+    clues:['Capital is Naypyidaw','Largest city is Yangon (Rangoon)'] },
+
+  { code:'kh', name:'Cambodia', region:'Asia',
+    facts:[
+      'Home to Angkor Wat, the world\'s largest religious monument',
+      'Khmer is the official language',
+      'Angkor Wat appears on the national flag'
+    ],
+    clues:['Capital is Phnom Penh','Was the heart of the medieval Khmer Empire'] },
+
+  { code:'qa', name:'Qatar', region:'Asia',
+    facts:[
+      'Hosted the 2022 FIFA World Cup, the first in the Middle East',
+      'Has one of the highest GDPs per capita in the world',
+      'Most of the country is desert or semi-desert'
+    ],
+    clues:['Capital is Doha','One of the world\'s largest natural-gas exporters'] },
+
+  { code:'lb', name:'Lebanon', region:'Asia',
+    facts:[
+      'The cedar tree on its flag has been a symbol for thousands of years',
+      'Beirut has been called the "Paris of the Middle East"',
+      'Home to some of the world\'s oldest continuously inhabited cities'
+    ],
+    clues:['Capital is Beirut','Arabic is official; French and English widely spoken'] },
+
+  { code:'jo', name:'Jordan', region:'Asia',
+    facts:[
+      'Home to Petra, the rose-red city carved into rock',
+      'Has a coastline on the Red Sea and shares the Dead Sea',
+      'Wadi Rum, "the Valley of the Moon," has hosted many Mars-themed films'
+    ],
+    clues:['Capital is Amman','Constitutional monarchy under the Hashemite royal family'] },
+
+  { code:'af', name:'Afghanistan', region:'Asia',
+    facts:[
+      'Crossroads of Central Asia, on the historic Silk Road',
+      'Has the rugged Hindu Kush mountain range',
+      'Famous for lapis lazuli, mined here for over 6,000 years'
+    ],
+    clues:['Capital is Kabul','Pashto and Dari are official languages'] },
+
+  { code:'kz', name:'Kazakhstan', region:'Asia',
+    facts:[
+      'Largest landlocked country in the world',
+      'Ninth largest country in the world by area',
+      'Home of the Baikonur Cosmodrome, the world\'s first and largest spaceport'
+    ],
+    clues:['Capital is Astana','Famous for vast steppes and the Tien Shan mountains'] },
+
+  { code:'et', name:'Ethiopia', region:'Africa',
+    facts:[
+      'One of only two African countries never formally colonized by Europeans',
+      'Birthplace of coffee — Arabica beans originated here',
+      'Uses its own calendar with 13 months and is about seven years behind the Gregorian calendar'
+    ],
+    clues:['Capital is Addis Ababa','Home to Lucy, one of the oldest hominid fossils'] },
+
+  { code:'gh', name:'Ghana', region:'Africa',
+    facts:[
+      'First sub-Saharan African country to gain independence (1957)',
+      'A major exporter of cocoa, the source of chocolate',
+      'Lake Volta is one of the largest artificial lakes by surface area'
+    ],
+    clues:['Capital is Accra','English is the official language'] },
+
+  { code:'tz', name:'Tanzania', region:'Africa',
+    facts:[
+      'Home to Mount Kilimanjaro, Africa\'s highest peak',
+      'Contains most of the Serengeti, famous for the wildebeest migration',
+      'The Zanzibar Archipelago is part of the country'
+    ],
+    clues:['Capital is Dodoma','Swahili and English are official languages'] },
+
+  { code:'tn', name:'Tunisia', region:'Africa',
+    facts:[
+      'Northernmost country in Africa',
+      'Filming location for Star Wars (Tatooine scenes shot here)',
+      'Site of ancient Carthage, the rival of Rome'
+    ],
+    clues:['Capital is Tunis','Has Mediterranean beaches and parts of the Sahara'] },
+
+  { code:'dz', name:'Algeria', region:'Africa',
+    facts:[
+      'Largest country in Africa by area (since the independence of South Sudan)',
+      'About 80% of the country is covered by the Sahara Desert',
+      'Has 7 UNESCO World Heritage Sites'
+    ],
+    clues:['Capital is Algiers','Official language is Arabic, with French widely spoken'] },
+
+  { code:'ly', name:'Libya', region:'Africa',
+    facts:[
+      'Most of the country is part of the Sahara Desert',
+      'Has the longest Mediterranean coastline of any African country',
+      'Home to ancient Greek and Roman ruins like Leptis Magna'
+    ],
+    clues:['Capital is Tripoli','Has some of the largest oil reserves in Africa'] },
+
+  /* ============================================================
+     TIER 3 — Less common (120 countries — the rest of the world)
+     ============================================================ */
+
+  /* ---- Africa (rest) ---- */
+  { code:'ao', name:'Angola', region:'Africa',
+    facts:[
+      'Largest Portuguese-speaking country in Africa',
+      'A major oil and diamond producer',
+      'The Kalandula Falls are among Africa\'s largest waterfalls by volume'
+    ],
+    clues:['Capital is Luanda','Was a Portuguese colony until 1975'] },
+
+  { code:'bj', name:'Benin', region:'Africa',
+    facts:[
+      'Considered the birthplace of the Vodun (Voodoo) religion',
+      'Was once part of the powerful Kingdom of Dahomey',
+      'Has stilt villages on Lake Nokoué'
+    ],
+    clues:['Capital is Porto-Novo','French is the official language'] },
+
+  { code:'bw', name:'Botswana', region:'Africa',
+    facts:[
+      'Home to the Okavango Delta, a unique inland river delta',
+      'Has one of the largest elephant populations in Africa',
+      'Once one of the poorest African countries, now upper-middle-income thanks to diamonds'
+    ],
+    clues:['Capital is Gaborone','English and Setswana are official languages'] },
+
+  { code:'bf', name:'Burkina Faso', region:'Africa',
+    facts:[
+      'Name means "Land of Honest People"',
+      'Hosts FESPACO, Africa\'s largest film festival',
+      'Was formerly known as Upper Volta'
+    ],
+    clues:['Capital is Ouagadougou','French is the official language'] },
+
+  { code:'bi', name:'Burundi', region:'Africa',
+    facts:[
+      'One of the smallest countries in mainland Africa',
+      'Lake Tanganyika, the world\'s second-deepest lake, forms its western border',
+      'Famous for the Royal Drummers of Burundi'
+    ],
+    clues:['Capital is Gitega','Kirundi, French, and English are official languages'] },
+
+  { code:'cv', name:'Cabo Verde', region:'Africa',
+    facts:[
+      'Archipelago of 10 volcanic islands off the West African coast',
+      'Singer Cesária Évora, "the Barefoot Diva," was from here',
+      'Was uninhabited before Portuguese settlers arrived in the 15th century'
+    ],
+    clues:['Capital is Praia','Portuguese is official; Cape Verdean Creole is widely spoken'] },
+
+  { code:'cm', name:'Cameroon', region:'Africa',
+    facts:[
+      'Often called "Africa in miniature" for its varied climate, geography, and cultures',
+      'Has both English and French as official languages',
+      'Mount Cameroon is one of West Africa\'s most active volcanoes'
+    ],
+    clues:['Capital is Yaoundé','The Indomitable Lions are its famous national football team'] },
+
+  { code:'cf', name:'Central African Republic', region:'Africa',
+    facts:[
+      'Landlocked country in Central Africa',
+      'Has rich rainforests in the south and savannah in the north',
+      'Sangha Trinational rainforest is a UNESCO World Heritage Site'
+    ],
+    clues:['Capital is Bangui','French and Sango are official languages'] },
+
+  { code:'td', name:'Chad', region:'Africa',
+    facts:[
+      'Named after Lake Chad, one of Africa\'s largest wetlands',
+      'Most of the country lies in the Sahel and Sahara',
+      'Has more than 200 different ethnic and linguistic groups'
+    ],
+    clues:['Capital is N\'Djamena','French and Arabic are official languages'] },
+
+  { code:'km', name:'Comoros', region:'Africa',
+    facts:[
+      'Archipelago of three main volcanic islands in the Indian Ocean',
+      'One of the world\'s largest producers of ylang-ylang, used in perfume',
+      'Smallest Arab League state by population'
+    ],
+    clues:['Capital is Moroni','Comorian, Arabic, and French are official'] },
+
+  { code:'cg', name:'Republic of the Congo', region:'Africa',
+    facts:[
+      'Sometimes called Congo-Brazzaville to distinguish it from its neighbour',
+      'Most of the country is covered by tropical rainforest',
+      'Lies along the Equator'
+    ],
+    clues:['Capital is Brazzaville, on the Congo River','French is the official language'] },
+
+  { code:'cd', name:'DR Congo', region:'Africa',
+    facts:[
+      'Second-largest country in Africa by area',
+      'Has most of the Congo Basin, the world\'s second-largest rainforest',
+      'The Congo River is the world\'s deepest river'
+    ],
+    clues:['Capital is Kinshasa','French is official; Lingala and Swahili are widely spoken'] },
+
+  { code:'ci', name:'Côte d\'Ivoire', region:'Africa',
+    facts:[
+      'World\'s largest producer of cocoa beans',
+      'Yamoussoukro\'s Basilica of Our Lady of Peace is one of the largest churches in the world',
+      'Name translates to "Ivory Coast"'
+    ],
+    clues:['Capital is Yamoussoukro; Abidjan is the largest city','French is the official language'] },
+
+  { code:'dj', name:'Djibouti', region:'Africa',
+    facts:[
+      'Strategically located at the entrance to the Red Sea',
+      'Lake Assal is the lowest point in Africa and one of the saltiest lakes on Earth',
+      'Hosts military bases of several global powers'
+    ],
+    clues:['Capital is Djibouti City','French and Arabic are official languages'] },
+
+  { code:'gq', name:'Equatorial Guinea', region:'Africa',
+    facts:[
+      'Only African country with Spanish as an official language',
+      'Made up of a mainland and several islands, including Bioko',
+      'A major oil producer in the Gulf of Guinea'
+    ],
+    clues:['Capital is Malabo, on Bioko Island','Spanish, French, and Portuguese are all official'] },
+
+  { code:'er', name:'Eritrea', region:'Africa',
+    facts:[
+      'Has a long Red Sea coastline',
+      'Asmara, the capital, is famous for its Italian Modernist architecture',
+      'Gained independence from Ethiopia in 1993'
+    ],
+    clues:['Capital is Asmara','Tigrinya, Arabic, and English are working languages'] },
+
+  { code:'sz', name:'Eswatini', region:'Africa',
+    facts:[
+      'One of the world\'s last absolute monarchies',
+      'Was officially renamed from "Swaziland" in 2018',
+      'Famous for the Umhlanga (Reed Dance) ceremony'
+    ],
+    clues:['Mbabane is administrative capital; Lobamba is the royal capital','Landlocked between South Africa and Mozambique'] },
+
+  { code:'ga', name:'Gabon', region:'Africa',
+    facts:[
+      'About 88% of the country is covered by rainforest',
+      'Home to forest elephants and lowland gorillas',
+      'Sits on the Equator on Africa\'s Atlantic coast'
+    ],
+    clues:['Capital is Libreville','French is the official language'] },
+
+  { code:'gm', name:'Gambia', region:'Africa',
+    facts:[
+      'Smallest country in mainland Africa',
+      'Almost entirely surrounded by Senegal',
+      'Named after the Gambia River, which runs through the country'
+    ],
+    clues:['Capital is Banjul','English is the official language'] },
+
+  { code:'gn', name:'Guinea', region:'Africa',
+    facts:[
+      'Has some of the world\'s largest reserves of bauxite, the source of aluminium',
+      'The Niger River begins in its mountains',
+      'Mount Nimba is a UNESCO biosphere reserve shared with Côte d\'Ivoire'
+    ],
+    clues:['Capital is Conakry','French is the official language'] },
+
+  { code:'gw', name:'Guinea-Bissau', region:'Africa',
+    facts:[
+      'Includes the Bijagós Archipelago, a UNESCO biosphere reserve',
+      'Cashew nuts are the main export',
+      'Was a Portuguese colony until 1973'
+    ],
+    clues:['Capital is Bissau','Portuguese is the official language'] },
+
+  { code:'ls', name:'Lesotho', region:'Africa',
+    facts:[
+      'Completely surrounded by South Africa',
+      'Often called the "Kingdom in the Sky" — its lowest point is over 1,400 m above sea level',
+      'Has the highest single-drop waterfall in Africa, Maletsunyane Falls'
+    ],
+    clues:['Capital is Maseru','Sesotho and English are official languages'] },
+
+  { code:'lr', name:'Liberia', region:'Africa',
+    facts:[
+      'Founded by freed American slaves in the 1820s',
+      'Its flag and political system were modeled on those of the United States',
+      'Africa\'s oldest republic'
+    ],
+    clues:['Capital is Monrovia, named after US President James Monroe','English is the official language'] },
+
+  { code:'mg', name:'Madagascar', region:'Africa',
+    facts:[
+      'Fourth largest island in the world',
+      'About 90% of its wildlife — including all lemurs — is found nowhere else',
+      'Famous for baobab trees along its "Avenue of the Baobabs"'
+    ],
+    clues:['Capital is Antananarivo','Malagasy and French are official languages'] },
+
+  { code:'mw', name:'Malawi', region:'Africa',
+    facts:[
+      'Often called "the Warm Heart of Africa"',
+      'Lake Malawi covers about 20% of the country',
+      'Lake Malawi has more fish species than any other lake in the world'
+    ],
+    clues:['Capital is Lilongwe','Chichewa and English are official languages'] },
+
+  { code:'ml', name:'Mali', region:'Africa',
+    facts:[
+      'Home to Timbuktu, a legendary center of learning in the 14th century',
+      'The Niger River, West Africa\'s longest, flows through Mali',
+      'Mansa Musa, considered one of the richest people in history, ruled here'
+    ],
+    clues:['Capital is Bamako','French is the official language'] },
+
+  { code:'mr', name:'Mauritania', region:'Africa',
+    facts:[
+      'Most of the country lies within the Sahara Desert',
+      'Bridges the Arab world and sub-Saharan Africa',
+      'Has one of the longest trains in the world, hauling iron ore across the desert'
+    ],
+    clues:['Capital is Nouakchott','Arabic is the official language'] },
+
+  { code:'mu', name:'Mauritius', region:'Africa',
+    facts:[
+      'Island nation in the Indian Ocean east of Madagascar',
+      'Was the only known home of the now-extinct dodo bird',
+      'Has a multilingual population speaking Creole, French, and English'
+    ],
+    clues:['Capital is Port Louis','English is official; French and Mauritian Creole widely spoken'] },
+
+  { code:'mz', name:'Mozambique', region:'Africa',
+    facts:[
+      'Has more than 2,500 km of Indian Ocean coastline',
+      'Only Portuguese-speaking country in southern Africa',
+      'The Bazaruto Archipelago is a famous diving destination'
+    ],
+    clues:['Capital is Maputo','Portuguese is the official language'] },
+
+  { code:'na', name:'Namibia', region:'Africa',
+    facts:[
+      'Home to the Namib Desert, one of the oldest deserts in the world',
+      'Has some of the world\'s tallest sand dunes at Sossusvlei',
+      'One of the most sparsely populated countries on Earth'
+    ],
+    clues:['Capital is Windhoek','English is the sole official language'] },
+
+  { code:'ne', name:'Niger', region:'Africa',
+    facts:[
+      'Named after the Niger River',
+      'Most of the country lies in the Sahara Desert',
+      'Has one of the youngest populations in the world (median age under 15)'
+    ],
+    clues:['Capital is Niamey','French is the official language'] },
+
+  { code:'rw', name:'Rwanda', region:'Africa',
+    facts:[
+      'Known as "the Land of a Thousand Hills"',
+      'Home to mountain gorillas in Volcanoes National Park',
+      'One of the cleanest countries in Africa thanks to nationwide cleanup days'
+    ],
+    clues:['Capital is Kigali','Kinyarwanda, English, French, and Swahili are all official'] },
+
+  { code:'st', name:'São Tomé and Príncipe', region:'Africa',
+    facts:[
+      'Africa\'s second-smallest country, after Seychelles',
+      'Made up of two main volcanic islands in the Gulf of Guinea',
+      'Crosses the Equator'
+    ],
+    clues:['Capital is São Tomé','Portuguese is the official language'] },
+
+  { code:'sn', name:'Senegal', region:'Africa',
+    facts:[
+      'Westernmost country in mainland Africa',
+      'Famous for the Dakar Rally and mbalax music (Youssou N\'Dour)',
+      'Gorée Island, off Dakar, is a UNESCO memorial of the slave trade'
+    ],
+    clues:['Capital is Dakar','French is official; Wolof is widely spoken'] },
+
+  { code:'sc', name:'Seychelles', region:'Africa',
+    facts:[
+      'Smallest African country by both area and population',
+      'Archipelago of 115 islands in the Indian Ocean',
+      'Home to the Coco de Mer, the largest seed in the plant kingdom'
+    ],
+    clues:['Capital is Victoria, on Mahé island','Seychellois Creole, English, and French are official'] },
+
+  { code:'sl', name:'Sierra Leone', region:'Africa',
+    facts:[
+      'Name means "Lion Mountains" in Portuguese',
+      'Freetown was founded as a settlement for freed slaves',
+      'Has some of the world\'s richest deposits of diamonds'
+    ],
+    clues:['Capital is Freetown','English is the official language'] },
+
+  { code:'so', name:'Somalia', region:'Africa',
+    facts:[
+      'Has the longest coastline of mainland Africa',
+      'At the tip of the "Horn of Africa"',
+      'Somali culture is rich in poetry and oral storytelling'
+    ],
+    clues:['Capital is Mogadishu','Somali and Arabic are official languages'] },
+
+  { code:'ss', name:'South Sudan', region:'Africa',
+    facts:[
+      'World\'s newest sovereign country, having gained independence in 2011',
+      'The Sudd, a vast wetland, is one of the largest in the world',
+      'Has one of Africa\'s largest wildlife migrations, the white-eared kob'
+    ],
+    clues:['Capital is Juba','English is the official language'] },
+
+  { code:'sd', name:'Sudan', region:'Africa',
+    facts:[
+      'Has more pyramids than Egypt — over 200 from the ancient Kingdom of Kush',
+      'The White Nile and Blue Nile meet at Khartoum',
+      'Was Africa\'s largest country until South Sudan split off in 2011'
+    ],
+    clues:['Capital is Khartoum','Arabic and English are official languages'] },
+
+  { code:'tg', name:'Togo', region:'Africa',
+    facts:[
+      'A long, narrow country on the Gulf of Guinea',
+      'Phosphate mining is a major industry',
+      'Famous for traditional Tata Somba mud-tower houses'
+    ],
+    clues:['Capital is Lomé','French is the official language'] },
+
+  { code:'ug', name:'Uganda', region:'Africa',
+    facts:[
+      'Often called "the Pearl of Africa"',
+      'Source of the White Nile is at Lake Victoria',
+      'Has roughly half of the world\'s remaining mountain gorillas'
+    ],
+    clues:['Capital is Kampala','English and Swahili are official languages'] },
+
+  { code:'zm', name:'Zambia', region:'Africa',
+    facts:[
+      'Home of Victoria Falls (shared with Zimbabwe)',
+      'Locally, Victoria Falls is called "Mosi-oa-Tunya," meaning "the Smoke that Thunders"',
+      'A major copper producer'
+    ],
+    clues:['Capital is Lusaka','English is the official language'] },
+
+  { code:'zw', name:'Zimbabwe', region:'Africa',
+    facts:[
+      'Shares Victoria Falls with Zambia',
+      'Named after Great Zimbabwe, the ruins of an ancient stone city',
+      'Hwange is the largest national park in the country'
+    ],
+    clues:['Capital is Harare','Has 16 official languages'] },
+
+  /* ---- Asia (rest) ---- */
+  { code:'am', name:'Armenia', region:'Asia',
+    facts:[
+      'First country in the world to officially adopt Christianity (around 301 AD)',
+      'Has its own unique alphabet, created in 405 AD',
+      'Mount Ararat, traditionally where Noah\'s Ark landed, is a national symbol'
+    ],
+    clues:['Capital is Yerevan','Armenian is the official language'] },
+
+  { code:'az', name:'Azerbaijan', region:'Asia',
+    facts:[
+      'Known as "the Land of Fire" due to natural gas vents',
+      'Bordered by the Caspian Sea, the world\'s largest inland body of water',
+      'Baku, the capital, sits about 28 m below sea level — the lowest in the world'
+    ],
+    clues:['Capital is Baku','Azerbaijani is the official language'] },
+
+  { code:'bh', name:'Bahrain', region:'Asia',
+    facts:[
+      'Smallest country in the Arab world by area',
+      'An archipelago of 33 islands in the Persian Gulf',
+      'Hosts the Bahrain Grand Prix Formula 1 race'
+    ],
+    clues:['Capital is Manama','Connected to Saudi Arabia by the King Fahd Causeway'] },
+
+  { code:'bt', name:'Bhutan', region:'Asia',
+    facts:[
+      'Famous for measuring "Gross National Happiness" alongside GDP',
+      'The Tiger\'s Nest monastery clings to a cliff at 3,120 m elevation',
+      'Carbon-negative country — its forests absorb more CO₂ than the country emits'
+    ],
+    clues:['Capital is Thimphu','Dzongkha is the national language'] },
+
+  { code:'bn', name:'Brunei', region:'Asia',
+    facts:[
+      'One of the world\'s wealthiest small nations, thanks to oil and gas',
+      'Ruled by one of the longest-reigning monarchs in the world, the Sultan',
+      'About 70% of the country is covered by rainforest'
+    ],
+    clues:['Capital is Bandar Seri Begawan','Located on the island of Borneo'] },
+
+  { code:'cy', name:'Cyprus', region:'Asia',
+    facts:[
+      'Third largest island in the Mediterranean',
+      'According to legend, the birthplace of Aphrodite, goddess of love',
+      'Politically divided since 1974 between Greek and Turkish Cypriot zones'
+    ],
+    clues:['Capital is Nicosia, the world\'s only divided capital','Greek and Turkish are official languages'] },
+
+  { code:'ge', name:'Georgia', region:'Asia',
+    facts:[
+      'One of the oldest wine-producing regions in the world (over 8,000 years)',
+      'Has its own unique alphabet, one of only 14 in active use',
+      'Spans the Caucasus Mountains between Europe and Asia'
+    ],
+    clues:['Capital is Tbilisi','Georgian is the official language'] },
+
+  { code:'kw', name:'Kuwait', region:'Asia',
+    facts:[
+      'Has roughly 6% of the world\'s known oil reserves',
+      'Has one of the most valuable currencies in the world (Kuwaiti dinar)',
+      'About 90% of its area is desert'
+    ],
+    clues:['Capital is Kuwait City','Arabic is the official language'] },
+
+  { code:'kg', name:'Kyrgyzstan', region:'Asia',
+    facts:[
+      'About 90% of the country lies above 1,500 m elevation',
+      'Lake Issyk-Kul is the world\'s second-largest mountain lake',
+      'Famous for its nomadic traditions and yurts'
+    ],
+    clues:['Capital is Bishkek','Kyrgyz and Russian are official languages'] },
+
+  { code:'la', name:'Laos', region:'Asia',
+    facts:[
+      'The only landlocked country in Southeast Asia',
+      'Plain of Jars, a mysterious archaeological site, is here',
+      'Luang Prabang is a famously well-preserved royal city, a UNESCO site'
+    ],
+    clues:['Capital is Vientiane','Lao is the official language'] },
+
+  { code:'mv', name:'Maldives', region:'Asia',
+    facts:[
+      'Lowest-lying country on Earth, with an average elevation of just 1.5 m',
+      'Made up of about 1,200 coral islands grouped into 26 atolls',
+      'Has a uniquely named currency, the rufiyaa'
+    ],
+    clues:['Capital is Malé','Famous for overwater villas and luxury resorts'] },
+
+  { code:'kp', name:'North Korea', region:'Asia',
+    facts:[
+      'Officially the Democratic People\'s Republic of Korea (DPRK)',
+      'Uses its own Juche calendar, starting from Kim Il-sung\'s birth in 1912',
+      'Has one of the world\'s largest standing armies'
+    ],
+    clues:['Capital is Pyongyang','Korean is the official language'] },
+
+  { code:'om', name:'Oman', region:'Asia',
+    facts:[
+      'Has the oldest independent state in the Arab world',
+      'World\'s largest exporter of frankincense',
+      'Has rugged mountains, deserts, and over 3,000 km of Indian Ocean coastline'
+    ],
+    clues:['Capital is Muscat','Arabic is the official language'] },
+
+  { code:'ps', name:'Palestine', region:'Asia',
+    facts:[
+      'Made up of two non-contiguous regions: the West Bank and the Gaza Strip',
+      'Bethlehem, traditionally the birthplace of Jesus, lies in the West Bank',
+      'A UN observer state since 2012'
+    ],
+    clues:['Ramallah is the administrative center','Arabic is the official language'] },
+
+  { code:'sy', name:'Syria', region:'Asia',
+    facts:[
+      'Damascus, the capital, is one of the oldest continuously inhabited cities in the world',
+      'Aleppo\'s Old City is a UNESCO World Heritage Site',
+      'The ancient city of Palmyra was a major trading hub on the Silk Road'
+    ],
+    clues:['Capital is Damascus','Arabic is the official language'] },
+
+  { code:'tj', name:'Tajikistan', region:'Asia',
+    facts:[
+      'About 93% of the country is mountainous',
+      'Home to Ismoil Somoni Peak, one of the highest in Central Asia',
+      'The Pamir Highway is one of the world\'s highest paved roads'
+    ],
+    clues:['Capital is Dushanbe','Tajik is the official language'] },
+
+  { code:'tl', name:'Timor-Leste', region:'Asia',
+    facts:[
+      'One of Asia\'s newest countries, gaining full independence in 2002',
+      'Occupies the eastern half of the island of Timor',
+      'Coffee is its main agricultural export'
+    ],
+    clues:['Capital is Dili','Tetum and Portuguese are official languages'] },
+
+  { code:'tm', name:'Turkmenistan', region:'Asia',
+    facts:[
+      'Home of the Darvaza "Door to Hell," a gas crater that has burned since 1971',
+      'About 70% of the country is the Karakum Desert',
+      'Famous for Akhal-Teke horses, with their metallic-sheen coats'
+    ],
+    clues:['Capital is Ashgabat, famous for its white marble buildings','Turkmen is the official language'] },
+
+  { code:'uz', name:'Uzbekistan', region:'Asia',
+    facts:[
+      'Home to Silk Road cities Samarkand, Bukhara, and Khiva',
+      'One of only two doubly landlocked countries in the world (along with Liechtenstein)',
+      'A major cotton producer'
+    ],
+    clues:['Capital is Tashkent','Uzbek is the official language'] },
+
+  { code:'ye', name:'Yemen', region:'Asia',
+    facts:[
+      'The mocha coffee bean is named after the Yemeni port city of Mocha',
+      'Socotra island has unique dragon blood trees found nowhere else',
+      'Sana\'a, the capital, has been continuously inhabited for over 2,500 years'
+    ],
+    clues:['Capital is Sana\'a','Arabic is the official language'] },
+
+  /* ---- Europe (rest) ---- */
+  { code:'al', name:'Albania', region:'Europe',
+    facts:[
+      'Has more than 750,000 Cold War-era concrete bunkers across the country',
+      'Albanian forms its own branch of the Indo-European language family',
+      'Has UNESCO-listed historic towns of Berat and Gjirokastër'
+    ],
+    clues:['Capital is Tirana','Albanian is the official language'] },
+
+  { code:'ad', name:'Andorra', region:'Europe',
+    facts:[
+      'Microstate in the Pyrenees mountains between France and Spain',
+      'One of the smallest countries in Europe',
+      'Catalan is the only official language'
+    ],
+    clues:['Capital is Andorra la Vella, the highest capital in Europe','Co-ruled by the President of France and a Spanish bishop'] },
+
+  { code:'by', name:'Belarus', region:'Europe',
+    facts:[
+      'Landlocked country in Eastern Europe',
+      'Home to Białowieża Forest, one of the last and largest primeval forests in Europe',
+      'Famous for the European bison, the continent\'s heaviest land animal'
+    ],
+    clues:['Capital is Minsk','Belarusian and Russian are official languages'] },
+
+  { code:'ba', name:'Bosnia and Herzegovina', region:'Europe',
+    facts:[
+      'Has only about 20 km of coastline along the Adriatic Sea',
+      'Famous for the Old Bridge of Mostar, a UNESCO World Heritage Site',
+      'Sarajevo hosted the 1984 Winter Olympics'
+    ],
+    clues:['Capital is Sarajevo','Bosnian, Croatian, and Serbian are official'] },
+
+  { code:'bg', name:'Bulgaria', region:'Europe',
+    facts:[
+      'One of Europe\'s oldest countries, founded in 681 AD',
+      'World\'s largest exporter of rose oil, used in perfumes',
+      'The Cyrillic alphabet was developed here in the 9th century'
+    ],
+    clues:['Capital is Sofia','Bulgarian is the official language'] },
+
+  { code:'ee', name:'Estonia', region:'Europe',
+    facts:[
+      'One of the most digital countries in the world — even online voting is common',
+      'Roughly half the country is covered by forest',
+      'Home of Skype, originally developed by Estonian programmers'
+    ],
+    clues:['Capital is Tallinn, with a famously well-preserved medieval Old Town','Estonian is the official language'] },
+
+  { code:'lv', name:'Latvia', region:'Europe',
+    facts:[
+      'Has more than 12,000 rivers and 3,000 lakes',
+      'Riga\'s Old Town has Europe\'s largest collection of Art Nouveau buildings',
+      'About half of the country is forested'
+    ],
+    clues:['Capital is Riga','Latvian is the official language'] },
+
+  { code:'li', name:'Liechtenstein', region:'Europe',
+    facts:[
+      'One of only two doubly landlocked countries in the world (along with Uzbekistan)',
+      'One of the smallest countries in Europe',
+      'A constitutional monarchy ruled by the House of Liechtenstein'
+    ],
+    clues:['Capital is Vaduz','German is the official language'] },
+
+  { code:'lt', name:'Lithuania', region:'Europe',
+    facts:[
+      'Largest of the three Baltic states',
+      'Was the last pagan country in Europe, converting to Christianity only in 1387',
+      'The Hill of Crosses near Šiauliai has hundreds of thousands of crosses'
+    ],
+    clues:['Capital is Vilnius','Lithuanian is one of the oldest living Indo-European languages'] },
+
+  { code:'lu', name:'Luxembourg', region:'Europe',
+    facts:[
+      'One of the world\'s wealthiest countries by GDP per capita',
+      'Only remaining sovereign Grand Duchy in the world',
+      'Made public transport free for residents and visitors in 2020'
+    ],
+    clues:['Capital is Luxembourg City','Luxembourgish, French, and German are official'] },
+
+  { code:'mt', name:'Malta', region:'Europe',
+    facts:[
+      'Smallest EU country by both area and population',
+      'Home to some of the oldest free-standing structures in the world (Megalithic Temples)',
+      'Has a unique language, Maltese — the only Semitic language written in Latin script'
+    ],
+    clues:['Capital is Valletta','Maltese and English are official languages'] },
+
+  { code:'md', name:'Moldova', region:'Europe',
+    facts:[
+      'Has one of the largest wine cellars in the world, Mileștii Mici',
+      'Most of the country lies between the Prut and Dniester rivers',
+      'Romanian (called "Moldovan" locally) is the official language'
+    ],
+    clues:['Capital is Chișinău','Wine production is a major part of the economy'] },
+
+  { code:'mc', name:'Monaco', region:'Europe',
+    facts:[
+      'Second smallest country in the world after Vatican City',
+      'Famous for the Monte Carlo Casino and the Monaco Grand Prix',
+      'Has one of the world\'s most densely populated areas'
+    ],
+    clues:['Located on the French Riviera','Ruled by the Grimaldi family for over 700 years'] },
+
+  { code:'me', name:'Montenegro', region:'Europe',
+    facts:[
+      'Name means "Black Mountain"',
+      'Bay of Kotor is often called Europe\'s southernmost fjord',
+      'Has five UNESCO World Heritage Sites despite its small size'
+    ],
+    clues:['Capital is Podgorica','Montenegrin is the official language'] },
+
+  { code:'mk', name:'North Macedonia', region:'Europe',
+    facts:[
+      'Renamed from "Macedonia" in 2019 after a long dispute with Greece',
+      'Mother Teresa was born in Skopje in 1910',
+      'Lake Ohrid, on its border, is one of Europe\'s oldest and deepest lakes'
+    ],
+    clues:['Capital is Skopje','Macedonian is the official language'] },
+
+  { code:'sm', name:'San Marino', region:'Europe',
+    facts:[
+      'One of the world\'s oldest republics, founded in 301 AD',
+      'Completely surrounded by Italy',
+      'Sits on Mount Titano, a UNESCO World Heritage Site'
+    ],
+    clues:['Capital is San Marino (city)','Italian is the official language'] },
+
+  { code:'rs', name:'Serbia', region:'Europe',
+    facts:[
+      'Belgrade is one of the oldest continuously inhabited cities in Europe',
+      'Birthplace of inventors Nikola Tesla and Mihajlo Pupin',
+      'Famous for plum brandy (rakija) and the Exit music festival'
+    ],
+    clues:['Capital is Belgrade','Serbian is written in both Cyrillic and Latin scripts'] },
+
+  { code:'sk', name:'Slovakia', region:'Europe',
+    facts:[
+      'Has more castles per capita than any other country in the world',
+      'The High Tatras are the smallest high mountain range in the world',
+      'Bratislava is the only world capital that borders two other countries (Austria, Hungary)'
+    ],
+    clues:['Capital is Bratislava','Slovak is the official language'] },
+
+  { code:'si', name:'Slovenia', region:'Europe',
+    facts:[
+      'About 60% of the country is covered by forest',
+      'Lake Bled, with its island church, is a famous landmark',
+      'The world\'s oldest grapevine still produces grapes in Maribor'
+    ],
+    clues:['Capital is Ljubljana','Slovenian is the official language'] },
+
+  { code:'va', name:'Vatican City', region:'Europe',
+    facts:[
+      'Smallest country in the world by both area and population',
+      'Home of the Pope and the Roman Catholic Church',
+      'The Vatican Museums hold one of the world\'s most important art collections'
+    ],
+    clues:['Located entirely within Rome, Italy','Italian and Latin are used officially'] },
+
+  /* ---- North America / Caribbean (rest) ---- */
+  { code:'ag', name:'Antigua and Barbuda', region:'Americas',
+    facts:[
+      'Said to have 365 beaches, "one for every day of the year"',
+      'Made up of two main islands in the Eastern Caribbean',
+      'Was a British colony until 1981'
+    ],
+    clues:['Capital is Saint John\'s, on Antigua','English is the official language'] },
+
+  { code:'bs', name:'Bahamas', region:'Americas',
+    facts:[
+      'Made up of about 700 islands and cays',
+      'First land sighted by Christopher Columbus in 1492',
+      'Famous for swimming pigs in Exuma'
+    ],
+    clues:['Capital is Nassau','English is the official language'] },
+
+  { code:'bb', name:'Barbados', region:'Americas',
+    facts:[
+      'Birthplace of pop superstar Rihanna',
+      'Where rum was invented in the 17th century',
+      'Became a republic in 2021, removing the British monarch as head of state'
+    ],
+    clues:['Capital is Bridgetown','English is the official language'] },
+
+  { code:'bz', name:'Belize', region:'Americas',
+    facts:[
+      'Has the second-largest barrier reef in the world',
+      'Famous for the Great Blue Hole, a massive underwater sinkhole',
+      'Only Central American country with English as the official language'
+    ],
+    clues:['Capital is Belmopan','Has the lowest population density in Central America'] },
+
+  { code:'dm', name:'Dominica', region:'Americas',
+    facts:[
+      'Known as "the Nature Island of the Caribbean"',
+      'Home to the world\'s second-largest hot lake, Boiling Lake',
+      'Has nine active volcanoes — the most of any Caribbean island'
+    ],
+    clues:['Capital is Roseau','English is the official language'] },
+
+  { code:'do', name:'Dominican Republic', region:'Americas',
+    facts:[
+      'Shares the island of Hispaniola with Haiti',
+      'Birthplace of merengue and bachata music',
+      'Pico Duarte is the highest mountain in the Caribbean'
+    ],
+    clues:['Santo Domingo is the oldest European-founded city in the Americas','Spanish is the official language'] },
+
+  { code:'sv', name:'El Salvador', region:'Americas',
+    facts:[
+      'Smallest country in mainland Central America',
+      'First country to make Bitcoin legal tender (2021)',
+      'Has more than 20 volcanoes, several still active'
+    ],
+    clues:['Capital is San Salvador','Spanish is the official language'] },
+
+  { code:'gd', name:'Grenada', region:'Americas',
+    facts:[
+      'Known as "the Spice Island"',
+      'One of the world\'s largest exporters of nutmeg',
+      'Has an Underwater Sculpture Park, a famous diving site'
+    ],
+    clues:['Capital is Saint George\'s','English is the official language'] },
+
+  { code:'gt', name:'Guatemala', region:'Americas',
+    facts:[
+      'Heart of the ancient Maya civilization',
+      'Tikal, a major Maya site, is here',
+      'Has 37 volcanoes, several still active'
+    ],
+    clues:['Capital is Guatemala City','Spanish is official; many indigenous Mayan languages also spoken'] },
+
+  { code:'ht', name:'Haiti', region:'Americas',
+    facts:[
+      'First country to be founded by a successful slave revolt (1804)',
+      'Shares the island of Hispaniola with the Dominican Republic',
+      'The Citadelle Laferrière is one of the largest fortresses in the Americas'
+    ],
+    clues:['Capital is Port-au-Prince','French and Haitian Creole are official languages'] },
+
+  { code:'hn', name:'Honduras', region:'Americas',
+    facts:[
+      'Copán was a major Maya city, now a UNESCO site',
+      'Has the second-largest coral reef system in the world along its Caribbean coast',
+      'A leading exporter of coffee and bananas'
+    ],
+    clues:['Capital is Tegucigalpa','Spanish is the official language'] },
+
+  { code:'jm', name:'Jamaica', region:'Americas',
+    facts:[
+      'Birthplace of reggae music and Bob Marley',
+      'Home of Usain Bolt, the fastest sprinter in history',
+      'Has the third-largest English-speaking population in the Americas'
+    ],
+    clues:['Capital is Kingston','Famous for Blue Mountain coffee'] },
+
+  { code:'ni', name:'Nicaragua', region:'Americas',
+    facts:[
+      'Largest country in Central America by area',
+      'Lake Nicaragua is one of the only freshwater lakes known to host sharks',
+      'Has more than 25 volcanoes'
+    ],
+    clues:['Capital is Managua','Spanish is the official language'] },
+
+  { code:'pa', name:'Panama', region:'Americas',
+    facts:[
+      'The Panama Canal connects the Atlantic and Pacific oceans',
+      'One of the few places where you can see the sunrise on the Pacific and sunset on the Atlantic',
+      'The Panama hat is actually traditionally made in Ecuador, despite the name'
+    ],
+    clues:['Capital is Panama City','Spanish is the official language'] },
+
+  { code:'kn', name:'Saint Kitts and Nevis', region:'Americas',
+    facts:[
+      'Smallest sovereign state in the Western Hemisphere by area',
+      'Made up of two main islands in the Caribbean',
+      'Brimstone Hill Fortress is a UNESCO World Heritage Site'
+    ],
+    clues:['Capital is Basseterre, on Saint Kitts','English is the official language'] },
+
+  { code:'lc', name:'Saint Lucia', region:'Americas',
+    facts:[
+      'Famous for the Pitons, twin volcanic peaks rising from the sea',
+      'Has produced two Nobel laureates despite a population under 200,000',
+      'Has the world\'s only drive-in volcano, Sulphur Springs'
+    ],
+    clues:['Capital is Castries','English is official; French Creole is widely spoken'] },
+
+  { code:'vc', name:'Saint Vincent and the Grenadines', region:'Americas',
+    facts:[
+      'Made up of one main island and 32 smaller ones',
+      'Filming location for Pirates of the Caribbean movies',
+      'La Soufrière is an active volcano on the main island'
+    ],
+    clues:['Capital is Kingstown','English is the official language'] },
+
+  { code:'tt', name:'Trinidad and Tobago', region:'Americas',
+    facts:[
+      'Birthplace of the steelpan, calypso, and soca music',
+      'Hosts one of the world\'s biggest carnivals every year',
+      'Pitch Lake is the world\'s largest natural deposit of asphalt'
+    ],
+    clues:['Capital is Port of Spain','English is the official language'] },
+
+  /* ---- South America (rest) ---- */
+  { code:'bo', name:'Bolivia', region:'Americas',
+    facts:[
+      'Has two capitals: Sucre (constitutional) and La Paz (administrative)',
+      'Home to Salar de Uyuni, the world\'s largest salt flat',
+      'La Paz is the world\'s highest administrative capital'
+    ],
+    clues:['Lake Titicaca, the highest navigable lake in the world, is on its border','Spanish and 36 indigenous languages are official'] },
+
+  { code:'ec', name:'Ecuador', region:'Americas',
+    facts:[
+      'Named after the Equator, which crosses the country',
+      'Famous for the Galápagos Islands, where Darwin developed his theory of evolution',
+      'Quito is one of the highest official capitals in the world'
+    ],
+    clues:['Capital is Quito','Spanish is official; Kichwa and Shuar are also recognized'] },
+
+  { code:'gy', name:'Guyana', region:'Americas',
+    facts:[
+      'Only English-speaking country in South America',
+      'Home of Kaieteur Falls, one of the world\'s most powerful waterfalls',
+      'About 80% of the country is covered by rainforest'
+    ],
+    clues:['Capital is Georgetown','English is the official language'] },
+
+  { code:'py', name:'Paraguay', region:'Americas',
+    facts:[
+      'Landlocked country in the heart of South America',
+      'Itaipu Dam, shared with Brazil, is one of the largest hydroelectric plants in the world',
+      'Spanish and Guaraní are co-official, with most people speaking Guaraní'
+    ],
+    clues:['Capital is Asunción','Tereré, a cold yerba mate, is the national drink'] },
+
+  { code:'sr', name:'Suriname', region:'Americas',
+    facts:[
+      'Smallest sovereign country in South America',
+      'Only country in the Americas where Dutch is the official language',
+      'About 90% of the country is covered by tropical rainforest'
+    ],
+    clues:['Capital is Paramaribo','Was a Dutch colony until 1975'] },
+
+  { code:'uy', name:'Uruguay', region:'Americas',
+    facts:[
+      'Won the very first FIFA World Cup in 1930 — and hosted it',
+      'Has one of the highest literacy rates in Latin America',
+      'Cattle outnumber people by more than three to one'
+    ],
+    clues:['Capital is Montevideo','Mate tea is the national drink'] },
+
+  { code:'ve', name:'Venezuela', region:'Americas',
+    facts:[
+      'Home of Angel Falls, the world\'s highest uninterrupted waterfall',
+      'One of the most biodiverse countries on Earth',
+      'Lake Maracaibo is the largest lake in South America'
+    ],
+    clues:['Capital is Caracas','Has some of the largest oil reserves in the world'] },
+
+  /* ---- Oceania (rest) ---- */
+  { code:'fj', name:'Fiji', region:'Oceania',
+    facts:[
+      'Made up of more than 330 islands',
+      'Famous for rugby, especially rugby sevens',
+      'Has a famously diverse mix of indigenous Fijian and Indo-Fijian cultures'
+    ],
+    clues:['Capital is Suva, on the island of Viti Levu','English, Fijian, and Hindi are official languages'] },
+
+  { code:'ki', name:'Kiribati', region:'Oceania',
+    facts:[
+      'The only country in all four hemispheres at once',
+      'Spans more than 3.5 million km² of ocean, almost entirely water',
+      'Among the first countries in the world to see each new day'
+    ],
+    clues:['Capital is South Tarawa','English and Gilbertese are official languages'] },
+
+  { code:'mh', name:'Marshall Islands', region:'Oceania',
+    facts:[
+      'Made up of more than 1,200 islands and islets',
+      'Bikini Atoll, used for nuclear tests, is in this country',
+      'Inhabitants traditionally navigated using "stick charts" of ocean swells'
+    ],
+    clues:['Capital is Majuro','Marshallese and English are official languages'] },
+
+  { code:'fm', name:'Micronesia', region:'Oceania',
+    facts:[
+      'Officially the Federated States of Micronesia (FSM), made up of four states',
+      'Nan Madol is an ancient ruined city built on artificial islets',
+      'Spans about 600 islands across the western Pacific'
+    ],
+    clues:['Capital is Palikir, on Pohnpei','English is the official language'] },
+
+  { code:'nr', name:'Nauru', region:'Oceania',
+    facts:[
+      'Third smallest country in the world by area',
+      'Smallest island nation in the world',
+      'Has no official capital — government offices are in Yaren District'
+    ],
+    clues:['Yaren District is the de facto capital','Nauruan and English are official languages'] },
+
+  { code:'pw', name:'Palau', region:'Oceania',
+    facts:[
+      'Famous for Jellyfish Lake, where you can swim with stingless jellyfish',
+      'Made up of more than 340 islands',
+      'First country in the world to ban many sunscreens harmful to coral reefs'
+    ],
+    clues:['Capital is Ngerulmud','Palauan and English are official languages'] },
+
+  { code:'pg', name:'Papua New Guinea', region:'Oceania',
+    facts:[
+      'One of the most linguistically diverse places on Earth, with over 800 languages',
+      'Occupies the eastern half of the island of New Guinea',
+      'Mount Wilhelm is the country\'s highest peak'
+    ],
+    clues:['Capital is Port Moresby','Tok Pisin, English, and Hiri Motu are official'] },
+
+  { code:'ws', name:'Samoa', region:'Oceania',
+    facts:[
+      'Until 2011, was one of the last countries in the world to see each new day',
+      'Famous for traditional siva dance and Polynesian tattoo art',
+      'Author Robert Louis Stevenson lived and is buried here'
+    ],
+    clues:['Capital is Apia','Samoan and English are official languages'] },
+
+  { code:'sb', name:'Solomon Islands', region:'Oceania',
+    facts:[
+      'Made up of six major islands and over 900 smaller ones',
+      'Site of major World War II battles, including Guadalcanal',
+      'Has the world\'s largest raised coral atoll, East Rennell'
+    ],
+    clues:['Capital is Honiara','English is the official language'] },
+
+  { code:'to', name:'Tonga', region:'Oceania',
+    facts:[
+      'Only Pacific nation never colonized by a foreign power',
+      'A constitutional monarchy with a long-reigning royal family',
+      'Made up of 169 islands, of which only about 36 are inhabited'
+    ],
+    clues:['Capital is Nukuʻalofa','Tongan and English are official languages'] },
+
+  { code:'tv', name:'Tuvalu', region:'Oceania',
+    facts:[
+      'Fourth smallest country in the world',
+      'Famously earns revenue by licensing its ".tv" internet domain',
+      'Highly vulnerable to rising sea levels — its highest point is just 4.6 m'
+    ],
+    clues:['Capital is Funafuti','Tuvaluan and English are official languages'] },
+
+  { code:'vu', name:'Vanuatu', region:'Oceania',
+    facts:[
+      'Made up of about 80 islands of volcanic origin',
+      'Often ranked among the happiest countries in the world',
+      'Mount Yasur is one of the most accessible active volcanoes on Earth'
+    ],
+    clues:['Capital is Port Vila','Bislama, English, and French are official languages'] },
+];
+
+/* ============================================================
+   High score persistence (localStorage)
+   ============================================================ */
+const HS_KEY = 'flagIqHighScores';
+const HS_LIMIT = 10;
+
+function getHighScores() {
+  try {
+    const raw = localStorage.getItem(HS_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function saveHighScore(name, score, outcome) {
+  const scores = getHighScores();
+  scores.push({
+    name: (name || 'Anonim').slice(0, 20),
+    score: Math.max(0, Math.round(score || 0)),
+    outcome,                          // 'win' | 'fail' | 'walkaway'
+    date: new Date().toISOString().slice(0, 10),
+  });
+  scores.sort((a, b) => b.score - a.score || a.date.localeCompare(b.date));
+  const trimmed = scores.slice(0, HS_LIMIT);
+  try { localStorage.setItem(HS_KEY, JSON.stringify(trimmed)); } catch (e) {}
+  return trimmed;
+}
+
+function clearHighScores() {
+  try { localStorage.removeItem(HS_KEY); } catch (e) {}
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+function outcomeIcon(o){
+  if (o === 'win')      return '👑';
+  if (o === 'walkaway') return '💼';
+  return '🎯';  // fail
+}
+
+/* High scores rendered as a compact HTML snippet for end-of-game modals */
+function topScoresHtml(limit){
+  const scores = getHighScores().slice(0, limit || 5);
+  if (scores.length === 0) return '<i style="color:#95A5A6">Belum ada skor tercatat.</i>';
+  return scores.map((s, i) =>
+    `<div style="display:flex; justify-content:space-between; gap:8px; font-size:13px; padding:2px 0;">
+       <span><b>${i+1}.</b> ${escapeHtml(s.name)} ${outcomeIcon(s.outcome)}</span>
+       <span style="font-weight:700; color:#239B56;">${fmtIDR(s.score)}</span>
+     </div>`
+  ).join('');
+}
+
+/* ============================================================
+   Prize ladder generation
+   Strictly monotonic increase from `min` to `max`. NEVER exceeds
+   `max` at any rung except the final one. Uses 5 magnitude
+   checkpoints with linear interpolation, then rounds each rung
+   to a nice IDR step. Scales to any COUNTRIES.length.
+   ============================================================ */
+function makeLadder(n, min, max){
+  if (n < 2) return [min];
+
+  // Anchor checkpoints define the shape of the curve:
+  // gentle rise → mid acceleration → big finish.
+  const checkpoints = [
+    [0,                  min     ],
+    [Math.round(n*0.20),  5000   ],
+    [Math.round(n*0.40),  25000  ],
+    [Math.round(n*0.60),  100000 ],
+    [Math.round(n*0.80),  400000 ],
+    [n - 1,               max    ],
+  ];
+
+  // Linear interpolation between checkpoints
+  const ladder = new Array(n);
+  for (let c = 0; c < checkpoints.length - 1; c++) {
+    const [i1, v1] = checkpoints[c];
+    const [i2, v2] = checkpoints[c+1];
+    const span = Math.max(1, i2 - i1);
+    for (let i = i1; i <= i2; i++) {
+      const t = (i - i1) / span;
+      ladder[i] = v1 + t * (v2 - v1);
+    }
+  }
+
+  // Pick a nice rounding step based on prize magnitude.
+  // Step is chosen so that step <= natural increment, so consecutive
+  // rounded rungs almost always end up distinct.
+  function niceStep(v) {
+    if (v < 2500)        return 50;
+    if (v < 10000)       return 100;
+    if (v < 50000)       return 500;
+    if (v < 200000)      return 1000;
+    if (v < 500000)      return 5000;
+    return 10000;
+  }
+
+  // Round each rung to a nice IDR figure
+  for (let i = 0; i < n; i++) {
+    const step = niceStep(ladder[i]);
+    ladder[i] = Math.round(ladder[i] / step) * step;
+  }
+
+  // Final pass: enforce strict monotonic increase AND cap below `max`
+  // for every rung except the last. This is what guarantees the
+  // prize never exceeds Rp 1,000,000 in the middle of the ladder.
+  for (let i = 1; i < n - 1; i++) {
+    // Hard cap: nothing in the middle is allowed to reach max
+    const ceiling = max - niceStep(max - 1); // e.g. 1,000,000 - 10,000 = 990,000
+    if (ladder[i] >= ceiling) ladder[i] = ceiling;
+
+    // Bump up if duplicate / decreasing
+    if (ladder[i] <= ladder[i-1]) {
+      const step = niceStep(ladder[i-1]);
+      ladder[i] = Math.min(ladder[i-1] + step, ceiling);
+    }
+  }
+
+  // Anchor first and last rung explicitly
+  ladder[0]    = min;
+  ladder[n-1]  = max;
+  return ladder;
+}
+
+/* ============================================================
+   Game state
+   ============================================================ */
+const state = {
+  playerName: '',
+  order: [],
+  level: 0,
+  prizes: [],
+  safetyLevels: [],
+  lifelines: { fifty: true, clue: true, parent: true },
+  lockedPrize: 0,
+  answered: false,
+};
+
+const $ = (id) => document.getElementById(id);
+
+function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function fmtIDR(n){ return 'Rp ' + n.toLocaleString('id-ID'); }
+
+/* ============================================================
+   Question + options builder
+   ============================================================ */
+function buildQuestion(level){
+  const country = COUNTRIES[ state.order[level] ];
+  const sameRegion = COUNTRIES.filter(c => c.region === country.region && c.code !== country.code);
+  const others = COUNTRIES.filter(c => c.code !== country.code);
+  const pool = sameRegion.length >= 6 ? sameRegion : others;
+  const distractors = shuffle([...pool]).slice(0,3);
+
+  const opts = shuffle([country, ...distractors]);
+  const correctIndex = opts.findIndex(o => o.code === country.code);
+
+  return { country, options: opts, correctIndex };
+}
+
+/* ============================================================
+   Render functions
+   ============================================================ */
+// Build the prize-ladder HTML (used by the ladder modal).
+// Newer/higher levels at the top; current level is highlighted.
+function buildLadderHtml(){
+  return state.prizes.map((p, i) => {
+    let cls = 'rung';
+    if (i === state.level) cls += ' current';
+    else if (i < state.level) cls += ' passed';
+    if (state.safetyLevels.includes(i)) cls += ' safety';
+    const lock = state.safetyLevels.includes(i) ? ' 🔒' : '';
+    return `<div class="${cls}"><span class="lvl">${i+1}.</span><span>${fmtIDR(p)}${lock}</span></div>`;
+  }).reverse().join('');
+}
+
+function showLadderModal(){
+  const html = buildLadderHtml();
+  showModal({
+    icon:'📊',
+    title:`Tangga Hadiah — Level ${state.level + 1} / ${state.prizes.length}`,
+    body:`<div class="ladder-modal-body" id="ladderModalBody">${html}</div>`,
+    primary:'Tutup', onPrimary: closeModal
+  });
+  // Center the current rung in the scrollable view
+  setTimeout(() => {
+    const cur = document.querySelector('#ladderModalBody .rung.current');
+    if (cur) cur.scrollIntoView({ block:'center' });
+  }, 50);
+}
+
+function renderHeader(){
+  $('levelPill').textContent = `Level ${state.level+1} / ${state.prizes.length}`;
+  $('prizeNow').textContent  = `${fmtIDR(state.prizes[state.level])}`;
+  $('levelPill').classList.remove('hidden');
+  $('prizeNow').classList.remove('hidden');
+}
+
+function renderQuestion(q){
+  state.answered = false;
+
+  const img = $('flagImg');
+  const loading = $('flagLoading');
+  loading.style.display = 'flex';
+  loading.textContent = 'Loading flag…';
+  img.style.opacity = 0;
+  img.onload  = () => { loading.style.display = 'none'; img.style.opacity = 1; };
+  img.onerror = () => { loading.textContent = '⚠️ Could not load flag'; };
+  img.src = `https://flagcdn.com/w640/${q.country.code}.png`;
+  img.alt = `Flag of ${q.country.name}`;
+
+  const ul = $('factsList'); ul.innerHTML = '';
+  q.country.facts.forEach(f => { const li=document.createElement('li'); li.textContent=f; ul.appendChild(li); });
+
+  $('extraClue').classList.add('hidden');
+  $('parentHint').classList.add('hidden');
+
+  const wrap = $('options'); wrap.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.dataset.index = idx;
+    btn.innerHTML = `<span class="letter">${letters[idx]}</span><span>${opt.name}</span>`;
+    btn.addEventListener('click', () => onAnswer(idx));
+    wrap.appendChild(btn);
+  });
+
+  $('ll5050').disabled   = !state.lifelines.fifty;
+  $('llClue').disabled   = !state.lifelines.clue;
+  $('llParent').disabled = !state.lifelines.parent;
+
+  renderHeader();
+}
+
+/* ============================================================
+   Answering
+   ============================================================ */
+let currentQ = null;
+
+function onAnswer(idx){
+  if (state.answered) return;
+  state.answered = true;
+
+  const buttons = document.querySelectorAll('.option');
+  buttons.forEach(b => b.disabled = true);
+
+  const correct = currentQ.correctIndex;
+  buttons[correct].classList.add('correct');
+
+  if (idx === correct) {
+    setTimeout(() => onCorrect(), 900);
+  } else {
+    buttons[idx].classList.add('wrong','shake');
+    setTimeout(() => onWrong(), 1500);
+  }
+}
+
+function onCorrect(){
+  const wonNow = state.prizes[state.level];
+  if (state.safetyLevels.includes(state.level)) state.lockedPrize = wonNow;
+
+  state.level++;
+  if (state.level >= state.prizes.length) {
+    // Won the whole game — record top prize as the high score
+    saveHighScore(state.playerName, wonNow, 'win');
+    return showModal({
+      icon:'🏆', title:'JACKPOT!',
+      body:
+        `Selamat <b>${escapeHtml(state.playerName)}</b>! Kamu memenangkan <b>${fmtIDR(wonNow)}</b> dengan menebak SEMUA ${state.prizes.length} bendera dunia dengan benar!`
+        + `<br/><br/><b>🏆 Top 5 High Scores:</b><br/>${topScoresHtml(5)}`,
+      primary:'Main Lagi', onPrimary: resetGame
+    });
+  }
+  currentQ = buildQuestion(state.level);
+  renderQuestion(currentQ);
+}
+
+function onWrong(){
+  // High-score value = prize at the level where they FAILED
+  // (not the safety line they cashed out at).
+  const failedLevelPrize = state.prizes[state.level];
+  saveHighScore(state.playerName, failedLevelPrize, 'fail');
+
+  // Show which safety line (if any) the player crossed.
+  const passedAny = state.lockedPrize > 0;
+  let safetyMsg;
+  if (passedAny) {
+    const passedSafetyIdx = state.safetyLevels.filter(idx => idx < state.level).pop();
+    const safetyLevelNum = passedSafetyIdx + 1; // 1-based for display
+    safetyMsg = `Untungnya kamu sudah lolos <b>safety line di Level ${safetyLevelNum}</b>, jadi kamu pulang dengan <b>${fmtIDR(state.lockedPrize)}</b>. 🔒`;
+  } else {
+    safetyMsg = `Sayangnya kamu belum lolos safety line pertama (Level 20), jadi kamu pulang dengan <b>Rp 0</b>. 😢`;
+  }
+  const scoreMsg = `📊 Skor tercatat untuk <b>${escapeHtml(state.playerName)}</b>: <b>${fmtIDR(failedLevelPrize)}</b> (Level ${state.level + 1}).`;
+
+  showModal({
+    icon: passedAny ? '💔' : '😢',
+    title: 'Jawaban Salah',
+    body:
+      `Jawaban yang benar adalah <b>${currentQ.country.name}</b>.<br/><br/>`
+      + `${safetyMsg}<br/><br/>${scoreMsg}`
+      + `<br/><br/><b>🏆 Top 5:</b><br/>${topScoresHtml(5)}`,
+    primary:'Main Lagi', onPrimary: resetGame
+  });
+}
+
+/* ============================================================
+   Lifelines
+   ============================================================ */
+function useFifty(){
+  if (!state.lifelines.fifty) return;
+  state.lifelines.fifty = false;
+  $('ll5050').disabled = true;
+
+  const wrongs = currentQ.options
+    .map((o,i) => ({i, isCorrect: i === currentQ.correctIndex}))
+    .filter(o => !o.isCorrect)
+    .map(o => o.i);
+  shuffle(wrongs).slice(0,2).forEach(i => {
+    document.querySelectorAll('.option')[i].classList.add('eliminated');
+  });
+}
+
+function useClue(){
+  if (!state.lifelines.clue) return;
+  state.lifelines.clue = false;
+  $('llClue').disabled = true;
+  const clueText = currentQ.country.clues.join(' • ');
+  $('extraClueText').textContent = clueText;
+  $('extraClue').classList.remove('hidden');
+}
+
+function useParent(){
+  if (!state.lifelines.parent) return;
+  state.lifelines.parent = false;
+  $('llParent').disabled = true;
+
+  const letters = ['A','B','C','D'];
+  const lucky = Math.random() < 0.75;
+  let pickIdx, msg;
+  if (lucky) {
+    pickIdx = currentQ.correctIndex;
+    const persona = Math.random() < 0.5 ? 'Mama' : 'Papa';
+    msg = `${persona} bilang: "Sepertinya jawabannya ${letters[pickIdx]} — ${currentQ.options[pickIdx].name}."`;
+  } else {
+    const wrongOpts = currentQ.options.map((_,i)=>i).filter(i => i !== currentQ.correctIndex);
+    pickIdx = wrongOpts[Math.floor(Math.random()*wrongOpts.length)];
+    const persona = Math.random() < 0.5 ? 'Mama' : 'Papa';
+    msg = `${persona} agak ragu, tapi mungkin ${letters[pickIdx]} — ${currentQ.options[pickIdx].name}? 🤔`;
+  }
+
+  document.querySelectorAll('.option')[pickIdx].classList.add('hint');
+  $('parentHintText').textContent = msg;
+  $('parentHint').classList.remove('hidden');
+}
+
+/* ============================================================
+   Walk away
+   ============================================================ */
+function walkAway(){
+  const have = state.level === 0 ? 0 : state.prizes[state.level - 1];
+  showModal({
+    icon:'💼', title:'Walk Away?',
+    body:`Yakin mau berhenti sekarang dan membawa pulang <b>${fmtIDR(have)}</b>?`,
+    primary:'Ya, Berhenti', onPrimary: () => {
+      saveHighScore(state.playerName, have, 'walkaway');
+      showModal({
+        icon:'🎉', title:'Selamat!',
+        body:
+          `Kamu pulang membawa <b>${fmtIDR(have)}</b>. Kerja bagus, <b>${escapeHtml(state.playerName)}</b>!`
+          + `<br/><br/><b>🏆 Top 5:</b><br/>${topScoresHtml(5)}`,
+        primary:'Main Lagi', onPrimary: resetGame
+      });
+    },
+    secondary:'Lanjut Main', onSecondary: closeModal
+  });
+}
+
+/* ============================================================
+   Modal
+   ============================================================ */
+function showModal({icon,title,body,primary,onPrimary,secondary,onSecondary,large}){
+  $('modalIcon').textContent = icon || '🎉';
+  $('modalTitle').textContent = title || '';
+  $('modalBody').innerHTML = body || '';
+  const p = $('modalPrimary'), s = $('modalSecondary');
+  p.textContent = primary || 'OK';
+  p.onclick = () => { closeModal(); if (onPrimary) onPrimary(); };
+  if (secondary) {
+    s.textContent = secondary;
+    s.classList.remove('hidden');
+    s.onclick = () => { closeModal(); if (onSecondary) onSecondary(); };
+  } else {
+    s.classList.add('hidden');
+  }
+  // Toggle wider modal style for content-heavy screens (e.g. About)
+  const modalEl = document.querySelector('#modalBg .modal');
+  if (modalEl) modalEl.classList.toggle('large', !!large);
+  $('modalBg').classList.add('show');
+}
+function closeModal(){ $('modalBg').classList.remove('show'); }
+
+/* ============================================================
+   About modal — full game description, features, rules, scoring
+   ============================================================ */
+function showAbout(){
+  showModal({
+    large: true,
+    icon:'ℹ️', title:'About Flag IQ',
+    body:`
+      <div class="body-block">
+        <p style="text-align:center; font-size:15px; margin-bottom:8px;">
+          <b>Flag IQ — World Millionaire</b><br/>
+          Tebak negara dari benderanya. Naik tangga hadiah dari <b>Rp 1.000</b> ke <b>Rp 1.000.000</b>
+          melewati <b>${COUNTRIES.length} negara</b> di seluruh dunia.
+        </p>
+
+        <h4>✨ Fitur</h4>
+        <ul>
+          <li>🌍 ${COUNTRIES.length} negara (193 anggota PBB + Vatican City + Palestine)</li>
+          <li>📚 Setiap negara punya minimal 3 <i>fun facts</i></li>
+          <li>💡 3 jenis bantuan: 50:50, Petunjuk Tambahan, Tanya Mama/Papa</li>
+          <li>🔒 Safety line di setiap kelipatan 20 level</li>
+          <li>💰 Total hadiah hingga Rp 1.000.000</li>
+          <li>🏆 Leaderboard Top 10 tersimpan di perangkatmu</li>
+        </ul>
+
+        <h4>🎮 Cara Bermain</h4>
+        <ol>
+          <li>Lihat bendera dan baca <i>fun facts</i>-nya.</li>
+          <li>Pilih nama negara yang benar dari 4 pilihan.</li>
+          <li>Setiap jawaban benar menaikkan hadiah hingga <b>Rp 1.000.000</b> di level terakhir.</li>
+          <li>Bisa <b>Walk Away</b> kapan saja untuk membawa pulang hadiah saat ini.</li>
+        </ol>
+
+        <h4>🔒 Safety Line</h4>
+        <p>Setiap 20 level (Level 20, 40, 60, 80, 100, 120, 140, 160, 180) ada safety line. Begitu kamu menjawab benar di level safety, hadiah di level itu <b>terkunci</b> untukmu.</p>
+        <ul>
+          <li>Salah jawab <b>sebelum</b> lolos Level 20 → pulang dengan <b>Rp 0</b>.</li>
+          <li>Salah jawab <b>setelah</b> lolos safety line → pulang dengan hadiah <b>safety line terakhir</b> yang dilewati.</li>
+        </ul>
+
+        <h4>💡 Bantuan (sekali pakai per game)</h4>
+        <ul>
+          <li><b>5️⃣0️⃣ 50:50</b> — buang 2 pilihan salah.</li>
+          <li><b>💡 Petunjuk Tambahan</b> — tampilkan info ekstra tentang negara.</li>
+          <li><b>👨‍👩‍👧 Tanya Mama/Papa</b> — sebagian besar waktu mereka benar 😉</li>
+        </ul>
+
+        <h4>📊 Skor</h4>
+        <p>Skor yang tercatat di leaderboard adalah <b>nilai hadiah di level dimana kamu gagal menjawab</b> — bukan hadiah safety line yang kamu bawa pulang. Jadi semakin jauh kamu sampai, semakin tinggi skornya.</p>
+      </div>`,
+    primary:'Tutup', onPrimary: closeModal
+  });
+}
+
+/* ============================================================
+   High Scores modal
+   ============================================================ */
+function showHighScoresModal(){
+  const scores = getHighScores();
+  let body;
+  if (scores.length === 0) {
+    body = '<p style="color:#95A5A6; font-style:italic; padding:12px 0;">Belum ada skor tercatat.<br/>Jadilah yang pertama!</p>';
+  } else {
+    body = '<ol class="hs-modal-list">' + scores.map((s, i) => {
+      const rankClass = i < 3 ? `rank-${i+1}` : '';
+      return `<li class="${rankClass}">
+        <span class="rank">${i+1}.</span>
+        <span class="name">${escapeHtml(s.name)} <small>${outcomeIcon(s.outcome)} ${s.date}</small></span>
+        <span class="score">${fmtIDR(s.score)}</span>
+      </li>`;
+    }).join('') + '</ol>';
+    body += '<div style="margin-top:14px; text-align:center;"><button id="resetScoresInline" class="reset-btn" type="button" style="background:transparent; border:1px solid var(--border); color:var(--text-2); padding:6px 14px; border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;">🗑 Reset Semua Skor</button></div>';
+  }
+  showModal({
+    icon:'🏆', title:'Top 10 High Scores',
+    body,
+    primary:'Tutup', onPrimary: closeModal
+  });
+  // Wire the inline reset button after the body has been rendered
+  const resetBtn = document.getElementById('resetScoresInline');
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      showModal({
+        icon:'🗑', title:'Reset Semua Skor?',
+        body:'Yakin mau menghapus seluruh leaderboard? Tindakan ini tidak bisa dibatalkan.',
+        primary:'Ya, Hapus', onPrimary: () => { clearHighScores(); showHighScoresModal(); },
+        secondary:'Batal', onSecondary: showHighScoresModal
+      });
+    };
+  }
+}
+
+/* ============================================================
+   Game flow
+   ============================================================ */
+// Splash menu → Name entry screen
+function openNameEntry(){
+  $('splash').classList.add('hidden');
+  $('nameEntry').classList.remove('hidden');
+  const nameInput = $('playerNameInput');
+  if (nameInput) {
+    if (state.playerName) nameInput.value = state.playerName;
+    setTimeout(() => nameInput.focus(), 50);
+  }
+}
+
+// Name entry screen → Splash menu
+function backToMenu(){
+  $('nameEntry').classList.add('hidden');
+  $('splash').classList.remove('hidden');
+}
+
+// Name entry screen → Game (validates name first)
+function beginGame(){
+  const nameInput = $('playerNameInput');
+  const name = (nameInput && nameInput.value || '').trim();
+  if (!name) {
+    if (nameInput) {
+      nameInput.classList.add('invalid');
+      nameInput.focus();
+      setTimeout(() => nameInput.classList.remove('invalid'), 1200);
+    }
+    return;
+  }
+  state.playerName = name;
+
+  $('splash').classList.add('hidden');
+  $('nameEntry').classList.add('hidden');
+  $('game').classList.remove('hidden');
+
+  // Tier sizes match the dataset structure (25 + 50 + the rest)
+  const T1 = 25, T2 = 50;
+  const tier1 = [...Array(T1).keys()];                          // 0..24
+  const tier2 = [...Array(T2).keys()].map(i => i + T1);         // 25..74
+  const tier3 = [...Array(COUNTRIES.length - T1 - T2).keys()].map(i => i + T1 + T2); // 75..end
+  state.order = [ ...shuffle(tier1), ...shuffle(tier2), ...shuffle(tier3) ];
+
+  state.level = 0;
+  state.prizes = makeLadder(state.order.length, 1000, 1000000);
+
+  // Safety lines every 20 levels (Level 20, 40, 60, 80, 100, 120, 140, 160, 180).
+  // When the player correctly answers a safety question, that prize is locked in:
+  // even if they later guess wrong, they go home with at least that amount.
+  // If they guess wrong before reaching the FIRST safety (Level 20), they go home with Rp 0.
+  const n = state.prizes.length;
+  state.safetyLevels = [];
+  for (let lvl = 20; lvl < n; lvl += 20) {
+    state.safetyLevels.push(lvl - 1); // convert 1-based level to 0-based index
+  }
+  state.lockedPrize = 0;
+
+  state.lifelines = { fifty: true, clue: true, parent: true };
+  currentQ = buildQuestion(0);
+  renderQuestion(currentQ);
+}
+
+function resetGame(){
+  $('game').classList.add('hidden');
+  $('nameEntry').classList.add('hidden');
+  $('splash').classList.remove('hidden');
+  $('levelPill').classList.add('hidden');
+  $('prizeNow').classList.add('hidden');
+  // playerName is kept in state — we'll pre-fill it next time the user opens nameEntry.
+}
+
+/* ============================================================
+   Wire up
+   ============================================================ */
+// Register the service worker for offline play (PWA install).
+// Runs only on http(s) origins — quietly skipped when opening file:// directly.
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err =>
+      console.warn('Service worker registration failed:', err)
+    );
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  $('splashCount').textContent = COUNTRIES.length;
+
+  // ----- Splash menu buttons -----
+  $('startBtn').onclick   = openNameEntry;
+  $('scoresBtn').onclick  = showHighScoresModal;
+  $('aboutBtn').onclick   = showAbout;
+
+  // ----- Name entry buttons -----
+  $('confirmNameBtn').onclick = beginGame;
+  $('backToMenuBtn').onclick  = backToMenu;
+
+  // Pressing Enter in the name field begins the game
+  const nameInput = $('playerNameInput');
+  if (nameInput) {
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); beginGame(); }
+    });
+  }
+
+  // ----- In-game buttons -----
+  $('ll5050').onclick   = useFifty;
+  $('llClue').onclick   = useClue;
+  $('llParent').onclick = useParent;
+  $('walkBtn').onclick  = walkAway;
+  $('ladderBtn').onclick = showLadderModal;
+  // Tapping the Level pill in the header also opens the ladder
+  $('levelPill').onclick = showLadderModal;
+  $('quitBtn').onclick  = () => {
+    showModal({
+      icon:'⟲', title:'Restart Game?',
+      body:'Yakin mau memulai ulang dari Level 1? Hadiah saat ini akan hilang.',
+      primary:'Ya, Restart', onPrimary: resetGame,
+      secondary:'Batal', onSecondary: closeModal
+    });
+  };
+});
+</script>
+</body>
+</html>

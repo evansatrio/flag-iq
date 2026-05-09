@@ -1,0 +1,23 @@
+{
+  "name": "Flag IQ — World Millionaire",
+  "short_name": "Flag IQ",
+  "description": "Tebak 195 bendera negara dari seluruh dunia. Naik tangga hadiah dari Rp 1.000 ke Rp 1.000.000 dengan 3 bantuan dan safety line setiap 20 level.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8E7",
+  "theme_color": "#FFF8E7",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": ["games", "education", "trivia"],
+  "icons": [
+    { "src": "icons/icon-192.png",          "sizes": "192x192",  "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png",          "sizes": "512x512",  "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-1024.png",         "sizes": "1024x1024","type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192",  "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512",  "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg",                    "sizes": "any",      "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "prefer_related_applications": false
+}
