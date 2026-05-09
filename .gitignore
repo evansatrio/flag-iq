@@ -1,0 +1,35 @@
+# --- Node / Capacitor build artifacts ---
+node_modules/
+www/
+# (package-lock.json IS committed — it makes CI builds reproducible)
+yarn.lock
+pnpm-lock.yaml
+
+# --- Capacitor-generated platform folders ---
+android/
+ios/
+
+# --- Android Studio / Gradle build outputs ---
+*.apk
+*.aab
+*.idb
+*.iml
+.gradle/
+build/
+.idea/
+local.properties
+captures/
+*.keystore
+*.jks
+release/
+
+# --- OS & editor noise ---
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+*.swp
+
+# --- Tooling caches ---
+.cache/
+.tmp/
