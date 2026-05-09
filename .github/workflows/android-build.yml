@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          # No cache: package-lock.json isn't committed yet on the first build.
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -27,7 +27,7 @@ jobs:
           java-version: '17'
 
       - name: Install npm dependencies
-        run: npm ci || npm install
+        run: npm install --no-audit --no-fund
 
       - name: Build web → www/
         run: npm run build:web
